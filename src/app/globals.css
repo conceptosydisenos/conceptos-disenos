@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Brand Tokens ─────────────────────────────────────────
+       Primary:   Navy  #1e3a5f → hsl(214, 52%, 25%)
+       Accent:    Amber #f59e0b → hsl(38, 92%, 50%)
+       Background: Slate-50 #f8fafc → hsl(210, 40%, 98%)
+    ─────────────────────────────────────────────────────────── */
+
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 214 52% 25%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent = Amber — used for badges, alerts, CTAs */
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+
+    --border: 213 27% 84%;
+    --input: 213 27% 84%;
+    --ring: 214 52% 25%;
+    --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-bg: 214 52% 20%;
+    --sidebar-text: 210 40% 90%;
+    --sidebar-active: 214 52% 32%;
+    --sidebar-hover: 214 52% 28%;
+    --sidebar-border: 214 40% 30%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Focus ring — visible for keyboard navigation */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  /* ── KPI Card numbers ──────────────────────────────────────── */
+  .kpi-value {
+    @apply text-3xl font-bold tracking-tight;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .kpi-value-sm {
+    @apply text-xl font-semibold tracking-tight;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* ── Financial amounts (tables, inline) ───────────────────── */
+  .amount {
+    @apply font-medium text-right;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .amount-positive {
+    @apply amount text-success;
+  }
+
+  .amount-negative {
+    @apply amount text-destructive;
+  }
+
+  /* ── Status badges ─────────────────────────────────────────── */
+  .badge-success {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium
+           bg-success/10 text-success border border-success/20;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium
+           bg-warning/10 text-amber-700 border border-warning/20;
+  }
+
+  .badge-destructive {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium
+           bg-destructive/10 text-destructive border border-destructive/20;
+  }
+
+  .badge-muted {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium
+           bg-muted text-muted-foreground border border-border;
+  }
+
+  /* ── Page header ───────────────────────────────────────────── */
+  .page-header {
+    @apply flex items-center justify-between pb-6 border-b border-border;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-foreground tracking-tight;
+  }
+
+  .page-description {
+    @apply text-sm text-muted-foreground mt-0.5;
+  }
+
+  /* ── Section card ──────────────────────────────────────────── */
+  .section-card {
+    @apply bg-card rounded-xl border border-border p-6 shadow-sm;
+  }
+}
+
+@layer utilities {
+  /* Tabular numbers utility */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Custom thin scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  /* Sidebar specific */
+  .sidebar-bg {
+    background-color: hsl(var(--sidebar-bg));
+  }
+
+  .sidebar-text {
+    color: hsl(var(--sidebar-text));
+  }
+
+  /* Animation utility for page transitions */
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-in-page {
+      animation: fade-in 0.2s ease-out;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-in-page,
+    [class*="animate-"] {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
