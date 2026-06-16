@@ -113,6 +113,11 @@ export const advances = pgTable("advances", {
 export const contractors = pgTable("contractors", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  contractor_type: text("contractor_type", {
+    enum: ["persona_natural", "empresa"],
+  })
+    .notNull()
+    .default("persona_natural"),
   specialty: text("specialty").notNull(),
   phone: text("phone").notNull(),
   email: text("email"),
@@ -137,6 +142,11 @@ export const project_contractors = pgTable("project_contractors", {
   }).notNull(),
   start_date: date("start_date").notNull(),
   end_date: date("end_date"),
+  payment_modality: text("payment_modality", {
+    enum: ["quincenal", "por_actividad"],
+  })
+    .notNull()
+    .default("quincenal"),
   status: text("status", { enum: ["active", "completed", "terminated"] })
     .notNull()
     .default("active"),

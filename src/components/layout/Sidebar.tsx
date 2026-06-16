@@ -12,6 +12,7 @@ import {
   BarChart3,
   Building2,
   LogOut,
+  TrendingUp,
 } from "lucide-react"
 import { useClerk } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
@@ -25,6 +26,7 @@ const navItems = [
 ]
 
 const adminItems = [
+  { href: "/dashboard/rentabilidad", icon: TrendingUp, label: "Rentabilidad" },
   { href: "/dashboard/clientes", icon: Users, label: "Clientes" },
   { href: "/dashboard/reportes", icon: BarChart3, label: "Reportes" },
 ]

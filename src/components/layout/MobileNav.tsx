@@ -20,7 +20,7 @@ export function MobileNav() {
     exact ? pathname === href : pathname === href || pathname.startsWith(href.split("/").slice(0, 3).join("/") + "/")
 
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-border pb-safe">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-border" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div className="flex items-end h-16 px-1">
         {tabs.map(({ href, icon: Icon, label, primary, exact }) => {
           const active = isActive(href, exact)

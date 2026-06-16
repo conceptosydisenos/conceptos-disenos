@@ -184,6 +184,21 @@
     color: hsl(var(--sidebar-text));
   }
 
+  /* Safe area for iPhone home indicator */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Touch target floor for mobile interactive elements */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
   /* Animation utility for page transitions */
   @media (prefers-reduced-motion: no-preference) {
     .animate-in-page {

@@ -8,6 +8,8 @@ import {
   validateAllocationTotal,
   isInvoiceOverdue,
   calculateBudgetProgress,
+  calculateCumulativeProgress,
+  getMarginStatus,
 } from "../src/lib/calculations"
 
 describe("calculateExecutedAmount", () => {
@@ -142,5 +144,47 @@ describe("calculateBudgetProgress", () => {
 
   it("returns 0 for zero budget", () => {
     expect(calculateBudgetProgress(1_000_000, 0)).toBe(0)
+  })
+})
+
+describe("calculateCumulativeProgress", () => {
+  it("sums approved cuts and divides by budget", () => {
+    // Cut 1: 2M executed, Cut 2: 3M executed — total 5M of 10M = 50%
+    expect(calculateCumulativeProgress([2_000_000, 3_000_000], 10_000_000)).toBeCloseTo(50, 1)
+  })
+
+  it("caps at 100%", () => {
+    expect(calculateCumulativeProgress([8_000_000, 5_000_000], 10_000_000)).toBe(100)
+  })
+
+  it("returns 0 with no cuts", () => {
+    expect(calculateCumulativeProgress([], 10_000_000)).toBe(0)
+  })
+
+  it("returns 0 when budget is 0", () => {
+    expect(calculateCumulativeProgress([1_000_000], 0)).toBe(0)
+  })
+
+  it("handles string inputs", () => {
+    expect(calculateCumulativeProgress(["3000000"], "10000000")).toBeCloseTo(30, 1)
+  })
+})
+
+describe("getMarginStatus", () => {
+  it("returns green when margin > 15%", () => {
+    expect(getMarginStatus(20)).toBe("green")
+    expect(getMarginStatus(15.1)).toBe("green")
+  })
+
+  it("returns amber when margin is between 5% and 15% inclusive", () => {
+    expect(getMarginStatus(15)).toBe("amber")
+    expect(getMarginStatus(10)).toBe("amber")
+    expect(getMarginStatus(5)).toBe("amber")
+  })
+
+  it("returns red when margin < 5%", () => {
+    expect(getMarginStatus(4.9)).toBe("red")
+    expect(getMarginStatus(0)).toBe("red")
+    expect(getMarginStatus(-10)).toBe("red")
   })
 })

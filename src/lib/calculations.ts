@@ -168,3 +168,36 @@ export function calculateBudgetProgress(
   if (totalBudget <= 0) return 0
   return Math.min((totalCost / totalBudget) * 100, 100)
 }
+
+// ── Margin Status Semaphore ───────────────────────────────────
+
+export type MarginStatus = "green" | "amber" | "red"
+
+/**
+ * Returns a traffic-light status based on margin percentage.
+ * Green > 15%, Amber 5–15%, Red < 5%
+ */
+export function getMarginStatus(marginPct: number): MarginStatus {
+  if (marginPct > 15) return "green"
+  if (marginPct >= 5) return "amber"
+  return "red"
+}
+
+// ── Cumulative Cut Progress ───────────────────────────────────
+
+/**
+ * Calculates cumulative project execution progress across approved cuts.
+ * Returns a value 0–100.
+ */
+export function calculateCumulativeProgress(
+  approvedCutsExecuted: (number | string)[],
+  totalBudget: number | string
+): number {
+  const budget = parseFloat(String(totalBudget))
+  if (budget <= 0) return 0
+  const cumulative = approvedCutsExecuted.reduce<number>(
+    (sum, v) => sum + parseFloat(String(v)),
+    0
+  )
+  return Math.min((cumulative / budget) * 100, 100)
+}
