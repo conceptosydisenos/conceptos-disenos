@@ -48,7 +48,7 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   description: text("description"),
   status: text("status", {
-    enum: ["active", "paused", "completed", "cancelled"],
+    enum: ["active", "paused", "completed", "in_warranty", "cancelled"],
   })
     .notNull()
     .default("active"),
