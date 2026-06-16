@@ -34,8 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      localization={esES as any}
+      localization={esES as never}
       appearance={{
         variables: {
           colorPrimary: "#1e3a5f",
