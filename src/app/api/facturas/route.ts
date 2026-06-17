@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { db } from "@/lib/db"
-import { invoices } from "@/lib/db/schema"
+import { invoices, invoice_allocations } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
 import { desc, eq } from "drizzle-orm"
 
@@ -36,6 +36,7 @@ const createSchema = z.object({
   image_url: z.string().url("URL de imagen inválida"),
   ocr_raw_data: z.record(z.unknown()).optional(),
   notes: z.string().optional(),
+  initial_project_id: z.string().uuid().optional(),
 })
 
 export async function POST(req: Request) {
@@ -43,6 +44,8 @@ export async function POST(req: Request) {
     const user = await requireAuth()
     const body = await req.json()
     const data = createSchema.parse(body)
+
+    const hasInitialProject = !!data.initial_project_id
 
     const [invoice] = await db
       .insert(invoices)
@@ -57,10 +60,21 @@ export async function POST(req: Request) {
         image_url: data.image_url,
         ocr_raw_data: data.ocr_raw_data ?? null,
         notes: data.notes || null,
-        status: "pending_allocation",
+        status: hasInitialProject ? "allocated" : "pending_allocation",
         created_by: user.id,
       })
       .returning({ id: invoices.id, total_amount: invoices.total_amount })
+
+    if (hasInitialProject) {
+      await db.insert(invoice_allocations).values({
+        invoice_id: invoice.id,
+        project_id: data.initial_project_id!,
+        amount: String(data.total_amount),
+        percentage: "100.00",
+        category: "materiales",
+        notes: null,
+      })
+    }
 
     return NextResponse.json({ success: true, data: invoice }, { status: 201 })
   } catch (err) {

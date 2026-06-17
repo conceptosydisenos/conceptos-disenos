@@ -297,6 +297,28 @@ export const audit_logs = pgTable("audit_logs", {
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 })
 
+// ── project_extras ───────────────────────────────────────────
+// Adicionales de obra: trabajos no contemplados en cotización original
+export const project_extras = pgTable("project_extras", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  project_id: uuid("project_id")
+    .references(() => projects.id)
+    .notNull(),
+  description: text("description").notNull(),
+  value: numeric("value", { precision: 15, scale: 2 }).notNull(),
+  reason: text("reason").notNull(),
+  status: text("status", { enum: ["pending", "approved"] })
+    .notNull()
+    .default("pending"),
+  approved_by: uuid("approved_by").references(() => users.id),
+  approved_at: timestamp("approved_at", { withTimezone: true }),
+  work_cut_id: uuid("work_cut_id").references(() => work_cuts.id),
+  created_by: uuid("created_by")
+    .references(() => users.id)
+    .notNull(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+})
+
 // ── leads [Fase 2] ───────────────────────────────────────────
 export const leads = pgTable("leads", {
   id: uuid("id").primaryKey().defaultRandom(),

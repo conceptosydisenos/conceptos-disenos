@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ActivityProgressInput } from "@/components/cortes/ActivityProgressInput"
 import { CorteSummary } from "@/components/cortes/CorteSummary"
-import { Loader2, AlertTriangle } from "lucide-react"
+import { Loader2, AlertTriangle, CheckSquare, Square } from "lucide-react"
 import {
   calculateExecutedAmount,
   calculateCumulativeProgress,
 } from "@/lib/calculations"
+import { formatCOP } from "@/lib/utils"
 
 export interface BudgetItemWithContext {
   id: string
@@ -23,13 +24,20 @@ export interface BudgetItemWithContext {
   previous_progress_pct: number
 }
 
+export interface AvailableExtra {
+  id: string
+  description: string
+  value: string
+}
+
 interface CorteFormProps {
   projectId: string
   cutNumber: number
   advancePercentage: number
   quotedAmount: number
   budgetItems: BudgetItemWithContext[]
-  previouslyExecuted: number // sum of all approved cuts' total_executed
+  previouslyExecuted: number
+  availableExtras?: AvailableExtra[]
 }
 
 export function CorteForm({
@@ -39,11 +47,13 @@ export function CorteForm({
   quotedAmount,
   budgetItems,
   previouslyExecuted,
+  availableExtras = [],
 }: CorteFormProps) {
   const router = useRouter()
   const [cutDate, setCutDate] = useState(new Date().toISOString().slice(0, 10))
   const [notes, setNotes] = useState("")
   const [progress, setProgress] = useState<Record<string, number>>({})
+  const [selectedExtras, setSelectedExtras] = useState<Set<string>>(new Set())
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -51,15 +61,30 @@ export function CorteForm({
     setProgress((prev) => ({ ...prev, [id]: pct }))
   }
 
+  const toggleExtra = (id: string) => {
+    setSelectedExtras((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   // Live calculations
   const progressEntries = Object.entries(progress)
     .filter(([, pct]) => pct > 0)
     .map(([budget_item_id, pct]) => ({ budget_item_id, progress_percentage: pct }))
 
-  const totalExecuted = calculateExecutedAmount(
+  const baseExecuted = calculateExecutedAmount(
     budgetItems.map((b) => ({ id: b.id, total_price: b.total_price })),
     progressEntries
   )
+
+  const extrasTotal = availableExtras
+    .filter((e) => selectedExtras.has(e.id))
+    .reduce((sum, e) => sum + parseFloat(e.value), 0)
+
+  const totalExecuted = baseExecuted + extrasTotal
 
   const cumulativeProgress = calculateCumulativeProgress(
     [previouslyExecuted + totalExecuted],
@@ -98,7 +123,13 @@ export function CorteForm({
       const res = await fetch("/api/cortes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: projectId, cut_date: cutDate, notes, items }),
+        body: JSON.stringify({
+          project_id: projectId,
+          cut_date: cutDate,
+          notes,
+          items,
+          extras_ids: Array.from(selectedExtras),
+        }),
       })
       const json = await res.json()
       if (!json.success) throw new Error(json.error)
@@ -136,41 +167,88 @@ export function CorteForm({
       </div>
 
       {/* Live summary — pinned above items on mobile */}
-      {hasAnyProgress && (
+      {(hasAnyProgress || selectedExtras.size > 0) && (
         <CorteSummary
           totalExecuted={totalExecuted}
+          baseExecuted={baseExecuted}
+          extrasTotal={extrasTotal}
           advancePercentage={advancePercentage}
           quotedAmount={quotedAmount}
           cumulativeProgress={cumulativeProgress}
         />
       )}
 
-      {/* Activities by category */}
-      {Object.entries(grouped).map(([category, items]) => (
-        <div key={category} className="space-y-2.5">
+      {/* Activities by category (base) */}
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-3">
+          Actividades base
+        </p>
+        {Object.entries(grouped).map(([category, items]) => (
+          <div key={category} className="space-y-2.5 mb-4">
+            <p className="text-xs text-muted-foreground px-1">
+              {CATEGORY_LABELS[category] ?? category}
+            </p>
+            {items.map((item) => (
+              <ActivityProgressInput
+                key={item.id}
+                id={item.id}
+                name={item.name}
+                unit={item.unit}
+                category={item.category}
+                totalPrice={parseFloat(item.total_price)}
+                previousPct={item.previous_progress_pct}
+                currentPct={progress[item.id] ?? 0}
+                onChange={handleProgressChange}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Extras aprobados disponibles */}
+      {availableExtras.length > 0 && (
+        <div className="space-y-2.5">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-            {CATEGORY_LABELS[category] ?? category}
+            Adicionales aprobados
           </p>
-          {items.map((item) => (
-            <ActivityProgressInput
-              key={item.id}
-              id={item.id}
-              name={item.name}
-              unit={item.unit}
-              category={item.category}
-              totalPrice={parseFloat(item.total_price)}
-              previousPct={item.previous_progress_pct}
-              currentPct={progress[item.id] ?? 0}
-              onChange={handleProgressChange}
-            />
-          ))}
+          {availableExtras.map((extra) => {
+            const selected = selectedExtras.has(extra.id)
+            return (
+              <button
+                key={extra.id}
+                type="button"
+                onClick={() => toggleExtra(extra.id)}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                  selected
+                    ? "border-green-500 bg-green-50"
+                    : "border-border bg-background hover:border-green-300"
+                }`}
+              >
+                {selected
+                  ? <CheckSquare className="w-4 h-4 text-green-600 shrink-0" />
+                  : <Square className="w-4 h-4 text-muted-foreground shrink-0" />
+                }
+                <span className="flex-1 text-sm text-foreground">{extra.description}</span>
+                <span className={`text-sm font-bold tabular-nums ${selected ? "text-green-700" : "text-foreground"}`}>
+                  + {formatCOP(parseFloat(extra.value))}
+                </span>
+              </button>
+            )
+          })}
+          {selectedExtras.size > 0 && (
+            <p className="text-xs text-muted-foreground px-1">
+              {selectedExtras.size} adicional{selectedExtras.size !== 1 ? "es" : ""} incluido{selectedExtras.size !== 1 ? "s" : ""} en este corte
+            </p>
+          )}
         </div>
-      ))}
+      )}
 
       {/* Summary repeated at bottom after items */}
-      {hasAnyProgress && (
+      {(hasAnyProgress || selectedExtras.size > 0) && (
         <CorteSummary
           totalExecuted={totalExecuted}
+          baseExecuted={baseExecuted}
+          extrasTotal={extrasTotal}
           advancePercentage={advancePercentage}
           quotedAmount={quotedAmount}
           cumulativeProgress={cumulativeProgress}
@@ -184,7 +262,7 @@ export function CorteForm({
         </div>
       )}
 
-      <Button className="w-full" disabled={!hasAnyProgress || submitting} onClick={handleSubmit}>
+      <Button className="w-full" disabled={(!hasAnyProgress && selectedExtras.size === 0) || submitting} onClick={handleSubmit}>
         {submitting ? (
           <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Guardando borrador...</>
         ) : (

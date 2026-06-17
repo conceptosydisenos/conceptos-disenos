@@ -3,14 +3,14 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, AlertTriangle, CheckCircle2 } from "lucide-react"
+import { Loader2, AlertTriangle, CheckCircle2, FolderOpen } from "lucide-react"
 import type { ExtractedInvoiceData } from "@/lib/gemini"
 
 const schema = z.object({
@@ -26,6 +26,12 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+interface ActiveProject {
+  id: string
+  name: string
+  status: string
+}
+
 interface OCRReviewProps {
   imageUrl: string
   ocrData: ExtractedInvoiceData
@@ -35,9 +41,22 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [showProjectError, setShowProjectError] = useState(false)
+  const [activeProjects, setActiveProjects] = useState<ActiveProject[]>([])
+  const projectSectionRef = useRef<HTMLDivElement>(null)
 
   const confidence = ocrData.confidence ?? 0
   const isLowConfidence = confidence < 0.6
+
+  useEffect(() => {
+    fetch("/api/proyectos?status=active")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success) setActiveProjects(json.data)
+      })
+      .catch(() => {})
+  }, [])
 
   const {
     register,
@@ -60,7 +79,20 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
 
   const total = watch("total_amount")
 
+  const handleProjectSelect = (projectId: string) => {
+    setSelectedProjectId(projectId)
+    setShowProjectError(false)
+  }
+
   const onSubmit = async (values: FormValues) => {
+    if (!selectedProjectId) {
+      setShowProjectError(true)
+      setTimeout(() => {
+        projectSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, 50)
+      return
+    }
+
     setSubmitting(true)
     setSubmitError(null)
     try {
@@ -71,11 +103,12 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
           ...values,
           image_url: imageUrl,
           ocr_raw_data: { ...ocrData, items: ocrData.items },
+          initial_project_id: selectedProjectId,
         }),
       })
       const json = await res.json()
       if (!json.success) throw new Error(json.error)
-      router.push(`/dashboard/facturas/${json.data.id}/asignar`)
+      router.push(`/dashboard/facturas/${json.data.id}`)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Error al guardar")
       setSubmitting(false)
@@ -168,14 +201,7 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
             </Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-              <Input
-                id="subtotal"
-                type="number"
-                min={0}
-                step={1000}
-                className="pl-7 tabular-nums"
-                {...register("subtotal")}
-              />
+              <Input id="subtotal" type="number" min={0} step={1000} className="pl-7 tabular-nums" {...register("subtotal")} />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -184,19 +210,11 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
             </Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-              <Input
-                id="tax_amount"
-                type="number"
-                min={0}
-                step={1000}
-                className="pl-7 tabular-nums"
-                {...register("tax_amount")}
-              />
+              <Input id="tax_amount" type="number" min={0} step={1000} className="pl-7 tabular-nums" {...register("tax_amount")} />
             </div>
           </div>
         </div>
 
-        {/* Total — highlighted */}
         <div className="space-y-1.5 p-3 rounded-lg bg-muted/50 border">
           <Label htmlFor="total_amount" className="text-sm font-semibold">
             Total factura *
@@ -223,7 +241,7 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
         </div>
       </div>
 
-      {/* Items del OCR (solo lectura) */}
+      {/* OCR items (read-only) */}
       {ocrData.items && ocrData.items.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -248,6 +266,45 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
         <Textarea id="notes" rows={2} placeholder="Observaciones sobre esta factura..." {...register("notes")} />
       </div>
 
+      {/* ── PROYECTO OBLIGATORIO ─────────────────────────────── */}
+      <div ref={projectSectionRef} className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-semibold">
+            Proyecto *
+          </Label>
+          {selectedProjectId && (
+            <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Seleccionado
+            </span>
+          )}
+        </div>
+
+        {showProjectError && (
+          <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4 space-y-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-sm font-semibold text-amber-900">
+                Para guardar esta factura debes asignarla a una obra. ¿A cuál proyecto pertenece?
+              </p>
+            </div>
+            <ProjectButtons
+              projects={activeProjects}
+              selectedId={selectedProjectId}
+              onSelect={handleProjectSelect}
+            />
+          </div>
+        )}
+
+        {!showProjectError && (
+          <ProjectButtons
+            projects={activeProjects}
+            selectedId={selectedProjectId}
+            onSelect={handleProjectSelect}
+          />
+        )}
+      </div>
+
       {submitError && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
           <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
@@ -259,9 +316,53 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
         {submitting ? (
           <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Guardando...</>
         ) : (
-          "Confirmar y asignar a proyectos →"
+          "Guardar factura →"
         )}
       </Button>
     </form>
+  )
+}
+
+function ProjectButtons({
+  projects,
+  selectedId,
+  onSelect,
+}: {
+  projects: ActiveProject[]
+  selectedId: string | null
+  onSelect: (id: string) => void
+}) {
+  if (projects.length === 0) {
+    return (
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border text-sm text-muted-foreground">
+        <FolderOpen className="w-4 h-4 shrink-0" />
+        <span>No hay proyectos activos</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {projects.map((p) => {
+        const isSelected = p.id === selectedId
+        return (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => onSelect(p.id)}
+            style={{ minHeight: "48px" }}
+            className={`w-full flex items-center gap-3 px-4 rounded-xl border-2 text-left transition-all ${
+              isSelected
+                ? "border-primary bg-primary/5 text-primary"
+                : "border-border bg-background hover:border-primary/50 hover:bg-muted/30"
+            }`}
+          >
+            <FolderOpen className={`w-4 h-4 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+            <span className="text-sm font-medium truncate flex-1">{p.name}</span>
+            {isSelected && <CheckCircle2 className="w-4 h-4 shrink-0 text-primary" />}
+          </button>
+        )
+      })}
+    </div>
   )
 }

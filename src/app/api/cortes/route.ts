@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { db } from "@/lib/db"
-import { work_cuts, work_cut_items, budget_items, projects, audit_logs } from "@/lib/db/schema"
+import { work_cuts, work_cut_items, budget_items, projects, audit_logs, project_extras } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { eq, and, max, sum } from "drizzle-orm"
+import { eq, and, max, sum, inArray } from "drizzle-orm"
 import {
   calculateExecutedAmount,
   calculateAmortization,
@@ -54,7 +54,8 @@ const createSchema = z.object({
         progress_percentage: z.coerce.number().min(0).max(100),
       })
     )
-    .min(1, "Debes registrar progreso en al menos una actividad"),
+    .min(0),
+  extras_ids: z.array(z.string().uuid()).optional().default([]),
 })
 
 export async function POST(req: NextRequest) {
@@ -97,27 +98,39 @@ export async function POST(req: NextRequest) {
       .from(budget_items)
       .where(eq(budget_items.project_id, data.project_id))
 
-    if (budgetItemRecords.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Este proyecto no tiene ítems de presupuesto." },
-        { status: 400 }
-      )
-    }
-
     // 4. Filter items with non-zero progress only
     const nonZeroItems = data.items.filter((i) => i.progress_percentage > 0)
-    if (nonZeroItems.length === 0) {
+
+    // 4b. Fetch approved extras to include
+    let extrasTotal = 0
+    let extrasRecords: { id: string; value: string }[] = []
+    if (data.extras_ids.length > 0) {
+      extrasRecords = await db
+        .select({ id: project_extras.id, value: project_extras.value })
+        .from(project_extras)
+        .where(
+          and(
+            inArray(project_extras.id, data.extras_ids),
+            eq(project_extras.project_id, data.project_id),
+            eq(project_extras.status, "approved")
+          )
+        )
+      extrasTotal = extrasRecords.reduce((sum, e) => sum + parseFloat(String(e.value)), 0)
+    }
+
+    if (nonZeroItems.length === 0 && extrasRecords.length === 0) {
       return NextResponse.json(
-        { success: false, error: "Debes registrar al menos una actividad con progreso mayor a 0%." },
+        { success: false, error: "Debes registrar avance en al menos una actividad o incluir un adicional aprobado." },
         { status: 400 }
       )
     }
 
     // 5. Calculate financials
-    const totalExecuted = calculateExecutedAmount(
+    const baseExecuted = calculateExecutedAmount(
       budgetItemRecords,
       nonZeroItems.map((i) => ({ budget_item_id: i.budget_item_id, progress_percentage: i.progress_percentage }))
     )
+    const totalExecuted = baseExecuted + extrasTotal
     const advancePct = parseFloat(String(project.advance_percentage))
     const amortization = calculateAmortization(totalExecuted, advancePct)
     const amountToPay = calculateNetToPay(totalExecuted, amortization)
@@ -161,20 +174,30 @@ export async function POST(req: NextRequest) {
       .returning({ id: work_cuts.id, cut_number: work_cuts.cut_number })
 
     // 9. Create work_cut_items
-    await db.insert(work_cut_items).values(
-      nonZeroItems.map((item) => {
-        const budgetItem = budgetItemRecords.find((b) => b.id === item.budget_item_id)
-        const executedAmt = budgetItem
-          ? (parseFloat(String(budgetItem.total_price)) * item.progress_percentage) / 100
-          : 0
-        return {
-          work_cut_id: cut.id,
-          budget_item_id: item.budget_item_id,
-          progress_percentage: String(item.progress_percentage),
-          executed_amount: String(executedAmt.toFixed(2)),
-        }
-      })
-    )
+    if (nonZeroItems.length > 0) {
+      await db.insert(work_cut_items).values(
+        nonZeroItems.map((item) => {
+          const budgetItem = budgetItemRecords.find((b) => b.id === item.budget_item_id)
+          const executedAmt = budgetItem
+            ? (parseFloat(String(budgetItem.total_price)) * item.progress_percentage) / 100
+            : 0
+          return {
+            work_cut_id: cut.id,
+            budget_item_id: item.budget_item_id,
+            progress_percentage: String(item.progress_percentage),
+            executed_amount: String(executedAmt.toFixed(2)),
+          }
+        })
+      )
+    }
+
+    // 9b. Link approved extras to this cut
+    if (extrasRecords.length > 0) {
+      await db
+        .update(project_extras)
+        .set({ work_cut_id: cut.id })
+        .where(inArray(project_extras.id, extrasRecords.map((e) => e.id)))
+    }
 
     // 10. Audit log
     await db.insert(audit_logs).values({

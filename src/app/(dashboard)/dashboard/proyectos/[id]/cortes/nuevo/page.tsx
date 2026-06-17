@@ -1,7 +1,7 @@
 import { db } from "@/lib/db"
-import { projects, budget_items, work_cuts, work_cut_items } from "@/lib/db/schema"
+import { projects, budget_items, work_cuts, work_cut_items, project_extras } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { eq, and, sum } from "drizzle-orm"
+import { eq, and, sum, isNull } from "drizzle-orm"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
@@ -91,6 +91,22 @@ export default async function NuevoCorte({ params }: Props) {
 
   const previouslyExecuted = parseFloat(String(approvedSum?.total ?? "0"))
 
+  // Approved extras not yet tied to a cut (available to include)
+  const availableExtras = await db
+    .select({
+      id: project_extras.id,
+      description: project_extras.description,
+      value: project_extras.value,
+    })
+    .from(project_extras)
+    .where(
+      and(
+        eq(project_extras.project_id, params.id),
+        eq(project_extras.status, "approved"),
+        isNull(project_extras.work_cut_id)
+      )
+    )
+
   const budgetItemsWithContext: BudgetItemWithContext[] = projectBudgetItems.map((item) => ({
     id: item.id,
     name: item.name,
@@ -127,6 +143,7 @@ export default async function NuevoCorte({ params }: Props) {
         quotedAmount={parseFloat(project.quoted_amount)}
         budgetItems={budgetItemsWithContext}
         previouslyExecuted={previouslyExecuted}
+        availableExtras={availableExtras}
       />
     </div>
   )

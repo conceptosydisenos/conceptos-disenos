@@ -1,26 +1,26 @@
 import { SignIn } from "@clerk/nextjs"
-import { Building2 } from "lucide-react"
+import Image from "next/image"
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left panel — brand */}
-      <div className="hidden lg:flex lg:w-1/2 sidebar-bg flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-5 h-5 text-accent-foreground" />
-          </div>
-          <span className="text-white font-bold text-lg leading-tight">
-            Conceptos y Diseños
-          </span>
-        </div>
+    <div className="min-h-screen flex">
+      {/* Left panel — white, logo + copy */}
+      <div className="hidden lg:flex lg:w-1/2 bg-white flex-col justify-between p-12">
+        <Image
+          src="/logo.jpg"
+          alt="Conceptos y Diseños"
+          width={200}
+          height={80}
+          className="object-contain object-left"
+          priority
+        />
 
         <div className="space-y-6">
           <blockquote className="space-y-3">
-            <p className="text-2xl font-semibold text-white leading-snug">
+            <p className="text-2xl font-semibold text-[#1e2d4e] leading-snug">
               &ldquo;El control financiero de cada obra, en la palma de tu mano.&rdquo;
             </p>
-            <footer className="text-sm text-white/60">
+            <footer className="text-sm text-gray-500">
               Sistema Integral de Gestión de Obras
             </footer>
           </blockquote>
@@ -31,34 +31,38 @@ export default function SignInPage() {
               "Dashboard de rentabilidad en tiempo real",
               "Cortes de obra y anticipos sin papel",
             ].map((item) => (
-              <li key={item} className="flex items-center gap-2 text-white/80 text-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
+              <li key={item} className="flex items-center gap-2 text-gray-600 text-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
                 {item}
               </li>
             ))}
           </ul>
         </div>
 
-        <p className="text-white/30 text-xs">
+        <p className="text-gray-400 text-xs">
           © {new Date().getFullYear()} Conceptos y Diseños · Bogotá, Colombia
         </p>
       </div>
 
-      {/* Right panel — sign in form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12">
+      {/* Right panel — navy, Clerk form */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 bg-[#1e2d4e]">
         {/* Mobile logo */}
-        <div className="flex items-center gap-2 mb-8 lg:hidden">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Building2 className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-foreground">Conceptos y Diseños</span>
+        <div className="mb-8 lg:hidden">
+          <Image
+            src="/logo.jpg"
+            alt="Conceptos y Diseños"
+            width={140}
+            height={56}
+            className="object-contain"
+            priority
+          />
         </div>
 
         <SignIn
           appearance={{
             elements: {
               rootBox: "w-full max-w-sm",
-              card: "shadow-none border-0 p-0",
+              card: "shadow-xl rounded-2xl border-0",
               headerTitle: "text-xl font-bold",
               headerSubtitle: "text-muted-foreground text-sm",
             },

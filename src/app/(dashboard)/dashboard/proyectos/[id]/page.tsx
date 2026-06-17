@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation"
 import { db } from "@/lib/db"
-import { projects, clients, advances, invoice_allocations, work_cuts } from "@/lib/db/schema"
+import { projects, clients, advances, invoice_allocations, work_cuts, project_extras } from "@/lib/db/schema"
 import { getCurrentUser } from "@/lib/auth"
 import { Header } from "@/components/layout/Header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { eq, sql } from "drizzle-orm"
+import { eq, sql, desc } from "drizzle-orm"
 import { formatCOP } from "@/lib/utils"
 import { calculateProjectMargin } from "@/lib/calculations"
 import {
@@ -22,6 +22,7 @@ import {
   FileText,
 } from "lucide-react"
 import { ProjectStatusSelect } from "@/components/proyectos/ProjectStatusSelect"
+import { ExtrasSection } from "@/components/proyectos/ExtrasSection"
 
 export const revalidate = 0
 
@@ -63,7 +64,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
 
   if (!project) notFound()
 
-  const [advancesResult, invoiceCostResult, cutsResult] = await Promise.all([
+  const [advancesResult, invoiceCostResult, cutsResult, extrasRows] = await Promise.all([
     db
       .select({ total: sql<string>`coalesce(sum(amount)::numeric, 0)` })
       .from(advances)
@@ -78,6 +79,21 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       .select({ count: sql<number>`count(*)::int` })
       .from(work_cuts)
       .where(eq(work_cuts.project_id, params.id)),
+
+    db
+      .select({
+        id: project_extras.id,
+        description: project_extras.description,
+        value: project_extras.value,
+        reason: project_extras.reason,
+        status: project_extras.status,
+        approved_at: project_extras.approved_at,
+        work_cut_id: project_extras.work_cut_id,
+        created_at: project_extras.created_at,
+      })
+      .from(project_extras)
+      .where(eq(project_extras.project_id, params.id))
+      .orderBy(desc(project_extras.created_at)),
   ])
 
   const quoted = parseFloat(project.quoted_amount)
@@ -90,6 +106,13 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
   const availableMargin = quoted - contingencyAmount - totalInvoiceCost
   const margin = calculateProjectMargin(quoted, totalInvoiceCost)
   const cutCount = cutsResult[0]?.count ?? 0
+  const initialExtras = extrasRows.map((e) => ({
+    ...e,
+    status: e.status as "pending" | "approved",
+    approved_at: e.approved_at ? e.approved_at.toISOString() : null,
+    work_cut_id: e.work_cut_id ?? null,
+    created_at: e.created_at.toISOString(),
+  }))
 
   const statusInfo = STATUS_MAP[project.status as keyof typeof STATUS_MAP] ?? STATUS_MAP.active
 
@@ -207,6 +230,9 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
             </Button>
           </div>
         </div>
+
+        {/* Extras de obra */}
+        <ExtrasSection projectId={project.id} isAdmin={isAdmin} initialExtras={initialExtras} />
 
         {/* Back link — mobile */}
         <Link
