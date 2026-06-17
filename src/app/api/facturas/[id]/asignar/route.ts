@@ -3,7 +3,7 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { invoices, invoice_allocations, audit_logs } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { validateAllocationTotal } from "@/lib/calculations"
 
 const allocationSchema = z.object({
@@ -26,6 +26,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const body = await req.json()
     const { allocations } = allocationSchema.parse(body)
 
+    // 1. Fetch invoice for amount validation (read-only, no lock needed here)
     const [invoice] = await db
       .select({ id: invoices.id, total_amount: invoices.total_amount, status: invoices.status })
       .from(invoices)
@@ -42,6 +43,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       )
     }
 
+    // 2. Validate allocation amounts before claiming
     const invoiceTotal = parseFloat(invoice.total_amount)
     const validation = validateAllocationTotal(allocations, invoiceTotal)
 
@@ -57,7 +59,28 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       )
     }
 
-    // Insert allocations
+    // 3. Atomic claim: UPDATE only succeeds if status is still pending_allocation.
+    //    Two concurrent requests cannot both win — the DB ensures exactly one UPDATE
+    //    matches, so whichever arrives second gets 0 rows back and returns 409.
+    const [claimed] = await db
+      .update(invoices)
+      .set({ status: "allocated", updated_at: new Date() })
+      .where(
+        and(
+          eq(invoices.id, params.id),
+          eq(invoices.status, "pending_allocation")
+        )
+      )
+      .returning({ id: invoices.id })
+
+    if (!claimed) {
+      return NextResponse.json(
+        { success: false, error: "Esta factura ya fue asignada por otro usuario" },
+        { status: 409 }
+      )
+    }
+
+    // 4. Safe to insert allocations — we won the race above
     await db.insert(invoice_allocations).values(
       allocations.map((a) => ({
         invoice_id: params.id,
@@ -69,13 +92,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }))
     )
 
-    // Update invoice status
-    await db
-      .update(invoices)
-      .set({ status: "allocated", updated_at: new Date() })
-      .where(eq(invoices.id, params.id))
-
-    // Audit log
+    // 5. Audit log
     await db.insert(audit_logs).values({
       user_id: user.id,
       action: "update",
