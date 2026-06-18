@@ -2,27 +2,35 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, FolderOpen, Camera, Scissors, MoreHorizontal } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Camera, Scissors, MoreHorizontal, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const tabs = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Inicio", exact: true },
-  { href: "/dashboard/proyectos", icon: FolderOpen, label: "Proyectos" },
-  { href: "/dashboard/facturas/nueva", icon: Camera, label: "Factura", primary: true },
-  { href: "/dashboard/cortes", icon: Scissors, label: "Cortes" },
-  { href: "/dashboard/menu", icon: MoreHorizontal, label: "Más" },
-]
+interface MobileNavProps {
+  role?: string
+}
 
-export function MobileNav() {
+export function MobileNav({ role }: MobileNavProps) {
   const pathname = usePathname()
 
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href.split("/").slice(0, 3).join("/") + "/")
 
+  const tabs = [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Inicio", exact: true },
+    { href: "/dashboard/proyectos", icon: FolderOpen, label: "Proyectos" },
+    { href: "/dashboard/facturas/nueva", icon: Camera, label: "Factura", primary: true },
+    { href: "/dashboard/cortes", icon: Scissors, label: "Cortes" },
+    role === "admin"
+      ? { href: "/dashboard/clientes", icon: Users, label: "Clientes" }
+      : { href: "/dashboard/menu", icon: MoreHorizontal, label: "Más" },
+  ] as const
+
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-border" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div className="flex items-end h-16 px-1">
-        {tabs.map(({ href, icon: Icon, label, primary, exact }) => {
+        {tabs.map(({ href, icon: Icon, label, ...rest }) => {
+          const primary = "primary" in rest && rest.primary
+          const exact = "exact" in rest ? rest.exact : false
           const active = isActive(href, exact)
           return (
             <Link

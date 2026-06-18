@@ -21,7 +21,7 @@ export default async function DashboardLayout({
       <div className="flex flex-col flex-1 min-w-0">
         <main className="flex-1 md:pb-0" style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom, 0px))" }}>{children}</main>
       </div>
-      <MobileNav />
+      <MobileNav role={user.role} />
       <Toaster />
     </div>
   )
