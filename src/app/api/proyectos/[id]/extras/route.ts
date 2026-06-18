@@ -3,7 +3,7 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { project_extras } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { eq, isNull, desc } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {

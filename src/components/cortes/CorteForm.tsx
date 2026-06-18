@@ -108,8 +108,8 @@ export function CorteForm({
   const hasAnyProgress = progressEntries.length > 0
 
   const handleSubmit = async () => {
-    if (!hasAnyProgress) {
-      setError("Registra el avance en al menos una actividad.")
+    if (!hasAnyProgress && selectedExtras.size === 0) {
+      setError("Registra el avance en al menos una actividad o selecciona un adicional.")
       return
     }
     setSubmitting(true)

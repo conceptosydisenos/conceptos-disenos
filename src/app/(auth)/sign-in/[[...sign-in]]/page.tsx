@@ -1,6 +1,8 @@
 import { SignIn } from "@clerk/nextjs"
 import Image from "next/image"
 
+export const dynamic = "force-dynamic"
+
 export default function SignInPage() {
   return (
     <div className="min-h-screen flex">

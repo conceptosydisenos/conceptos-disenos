@@ -1,6 +1,8 @@
 import { SignUp } from "@clerk/nextjs"
 import Image from "next/image"
 
+export const dynamic = "force-dynamic"
+
 export default function SignUpPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#1e2d4e]">
