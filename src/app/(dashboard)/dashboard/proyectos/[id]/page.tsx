@@ -223,7 +223,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
               </Link>
             </Button>
             <Button asChild className="h-auto py-3 flex-col gap-1.5 col-span-2 bg-amber-500 hover:bg-amber-600 text-white">
-              <Link href={`/dashboard/cortes/nuevo?proyecto=${project.id}`}>
+              <Link href={`/dashboard/proyectos/${project.id}/cortes/nuevo`}>
                 <Plus className="w-4 h-4" />
                 <span className="text-xs font-semibold">Registrar corte de obra</span>
               </Link>

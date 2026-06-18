@@ -192,7 +192,7 @@ export function ProyectoForm({ clients }: ProyectoFormProps) {
             id="quoted_amount"
             type="number"
             min={0}
-            step={1000}
+            step={1}
             placeholder="0"
             className={`pl-7 tabular-nums ${errors.quoted_amount ? "border-destructive" : ""}`}
             {...register("quoted_amount")}

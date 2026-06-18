@@ -53,9 +53,9 @@ export async function extractInvoiceData(
   imageUrl: string
 ): Promise<ExtractedInvoiceData> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.0-flash",
     generationConfig: {
-      temperature: 0.1, // Low temperature for factual extraction
+      temperature: 0.1,
       maxOutputTokens: 2048,
     },
   })
@@ -84,7 +84,12 @@ export async function extractInvoiceData(
   ])
 
   const text = result.response.text().trim()
-  const jsonStr = text.replace(/```json\n?|\n?```/g, "").trim()
+  // Extract the JSON object robustly — handles markdown code blocks and surrounding text
+  const startIdx = text.indexOf("{")
+  const endIdx = text.lastIndexOf("}")
+  const jsonStr = startIdx >= 0 && endIdx > startIdx
+    ? text.slice(startIdx, endIdx + 1)
+    : text.replace(/```json\n?|\n?```/g, "").trim()
 
   let extracted: Omit<ExtractedInvoiceData, "requires_review">
   try {

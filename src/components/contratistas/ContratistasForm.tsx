@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -66,11 +66,21 @@ export function ContratistasForm({ defaultValues, contratistId }: ContratistasFo
     resolver: zodResolver(schema),
     defaultValues: {
       contractor_type: "persona_natural",
+      phone: "+57 ",
       ...defaultValues,
     },
   })
 
   const contractorType = watch("contractor_type")
+  const phoneValue = watch("phone")
+
+  useEffect(() => {
+    const PREFIX = "+57 "
+    if (phoneValue !== undefined && !phoneValue.startsWith(PREFIX)) {
+      const digits = phoneValue.replace(/^\+?57\s?/, "")
+      setValue("phone", PREFIX + digits, { shouldValidate: false })
+    }
+  }, [phoneValue, setValue])
 
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true)
@@ -155,6 +165,9 @@ export function ContratistasForm({ defaultValues, contratistId }: ContratistasFo
           placeholder="+57 300 123 4567"
           {...register("phone")}
           className={errors.phone ? "border-destructive" : ""}
+          onFocus={(e) => {
+            if (!e.target.value) setValue("phone", "+57 ")
+          }}
         />
         {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
       </div>
