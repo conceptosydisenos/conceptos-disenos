@@ -25,11 +25,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: [
-      "@neondatabase/serverless",
-      "@upstash/redis",
-      "@upstash/ratelimit",
-    ],
+    serverComponentsExternalPackages: ["@neondatabase/serverless"],
   },
   async headers() {
     return [
