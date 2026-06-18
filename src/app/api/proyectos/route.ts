@@ -3,7 +3,7 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { projects } from "@/lib/db/schema"
 import { requireAuth, requireRole } from "@/lib/auth"
-import { desc, eq } from "drizzle-orm"
+import { and, desc, eq, isNull } from "drizzle-orm"
 
 export async function GET(req: Request) {
   try {
@@ -15,9 +15,12 @@ export async function GET(req: Request) {
       .select()
       .from(projects)
       .where(
-        status && status !== "all"
-          ? eq(projects.status, status as "active" | "paused" | "completed" | "in_warranty" | "cancelled")
-          : undefined
+        and(
+          isNull(projects.deleted_at),
+          status && status !== "all"
+            ? eq(projects.status, status as "active" | "paused" | "completed" | "in_warranty" | "cancelled")
+            : undefined
+        )
       )
       .orderBy(desc(projects.created_at))
 

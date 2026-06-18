@@ -3,7 +3,7 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { projects, advances, invoice_allocations, clients } from "@/lib/db/schema"
 import { requireAuth, requireRole } from "@/lib/auth"
-import { eq, sql } from "drizzle-orm"
+import { and, eq, isNull, sql } from "drizzle-orm"
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
@@ -27,7 +27,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       })
       .from(projects)
       .leftJoin(clients, eq(projects.client_id, clients.id))
-      .where(eq(projects.id, params.id))
+      .where(and(eq(projects.id, params.id), isNull(projects.deleted_at)))
 
     if (!project) {
       return NextResponse.json({ success: false, error: "Proyecto no encontrado" }, { status: 404 })
@@ -86,7 +86,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const [updated] = await db
       .update(projects)
       .set({ ...data, updated_at: new Date() })
-      .where(eq(projects.id, params.id))
+      .where(and(eq(projects.id, params.id), isNull(projects.deleted_at)))
       .returning({ id: projects.id, status: projects.status })
 
     return NextResponse.json({ success: true, data: updated })
