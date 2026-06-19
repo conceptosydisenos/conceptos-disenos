@@ -27,6 +27,7 @@ export function CorteStatusActions({ cutId, projectId, currentStatus, isAdmin }:
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al actualizar")
+    } finally {
       setLoading(false)
     }
   }

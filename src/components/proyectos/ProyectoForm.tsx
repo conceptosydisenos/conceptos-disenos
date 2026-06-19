@@ -105,7 +105,9 @@ export function ProyectoForm({ clients, projectId, initialValues }: ProyectoForm
       })
       const json = await res.json()
       if (json.success) {
-        router.push(isEditing ? `/dashboard/proyectos/${projectId}` : `/dashboard/proyectos/${json.data.id}`)
+        const dest = isEditing ? `/dashboard/proyectos/${projectId}` : `/dashboard/proyectos/${json.data.id}`
+        router.push(dest)
+        router.refresh()
       } else {
         setSubmitError(json.error ?? "Error al guardar. Intenta de nuevo.")
       }

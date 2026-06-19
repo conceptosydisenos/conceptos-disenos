@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const filename = `facturas/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`
 
   try {
-    const { url } = await put(filename, file, { access: "private" as "public" })
+    const { url } = await put(filename, file, { access: "public" })
     return NextResponse.json(apiSuccess({ url }))
   } catch (err) {
     console.error("[uploads] Blob upload failed:", {
