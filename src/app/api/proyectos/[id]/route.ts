@@ -74,7 +74,15 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
 const patchSchema = z.object({
   status: z.enum(["active", "paused", "completed", "in_warranty", "cancelled"]).optional(),
-  actual_end_date: z.string().optional(),
+  actual_end_date: z.string().optional().nullable(),
+  name: z.string().min(3).optional(),
+  description: z.string().optional().nullable(),
+  client_id: z.string().uuid().optional(),
+  quoted_amount: z.coerce.number().positive().optional(),
+  advance_percentage: z.coerce.number().min(0).max(100).optional(),
+  contingency_percentage: z.coerce.number().min(0).max(100).optional(),
+  start_date: z.string().optional(),
+  estimated_end_date: z.string().optional().nullable(),
 })
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
@@ -83,9 +91,21 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const body = await req.json()
     const data = patchSchema.parse(body)
 
+    const setFields: Record<string, unknown> = { updated_at: new Date() }
+    if (data.status !== undefined) setFields.status = data.status
+    if (data.actual_end_date !== undefined) setFields.actual_end_date = data.actual_end_date
+    if (data.name !== undefined) setFields.name = data.name
+    if (data.description !== undefined) setFields.description = data.description
+    if (data.client_id !== undefined) setFields.client_id = data.client_id
+    if (data.quoted_amount !== undefined) setFields.quoted_amount = String(data.quoted_amount)
+    if (data.advance_percentage !== undefined) setFields.advance_percentage = String(data.advance_percentage)
+    if (data.contingency_percentage !== undefined) setFields.contingency_percentage = String(data.contingency_percentage)
+    if (data.start_date !== undefined) setFields.start_date = data.start_date
+    if (data.estimated_end_date !== undefined) setFields.estimated_end_date = data.estimated_end_date
+
     const [updated] = await db
       .update(projects)
-      .set({ ...data, updated_at: new Date() })
+      .set(setFields)
       .where(and(eq(projects.id, params.id), isNull(projects.deleted_at)))
       .returning({ id: projects.id, status: projects.status })
 

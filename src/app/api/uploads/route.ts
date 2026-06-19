@@ -38,7 +38,16 @@ export async function POST(req: NextRequest) {
     const { url } = await put(filename, file, { access: "public" })
     return NextResponse.json(apiSuccess({ url }))
   } catch (err) {
-    console.error("Blob upload failed:", err)
-    return NextResponse.json(apiError("Error al guardar la imagen. Intente de nuevo."), { status: 500 })
+    console.error("[uploads] Blob upload failed:", {
+      error: err instanceof Error ? err.message : String(err),
+      filename,
+      fileSize: file.size,
+      fileType: file.type,
+      hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+    })
+    const message = !process.env.BLOB_READ_WRITE_TOKEN
+      ? "BLOB_READ_WRITE_TOKEN no configurado en Vercel → Settings → Environment Variables."
+      : `Error al subir imagen: ${err instanceof Error ? err.message : "desconocido"}. Revisa los logs en Vercel.`
+    return NextResponse.json(apiError(message), { status: 500 })
   }
 }

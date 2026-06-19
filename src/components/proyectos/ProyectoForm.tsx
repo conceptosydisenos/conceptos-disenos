@@ -41,10 +41,13 @@ interface Client {
 
 interface ProyectoFormProps {
   clients: Client[]
+  projectId?: string
+  initialValues?: Partial<FormValues>
 }
 
-export function ProyectoForm({ clients }: ProyectoFormProps) {
+export function ProyectoForm({ clients, projectId, initialValues }: ProyectoFormProps) {
   const router = useRouter()
+  const isEditing = Boolean(projectId)
   const [newClientName, setNewClientName] = useState("")
   const [showNewClient, setShowNewClient] = useState(false)
   const [creatingClient, setCreatingClient] = useState(false)
@@ -61,6 +64,7 @@ export function ProyectoForm({ clients }: ProyectoFormProps) {
     defaultValues: {
       advance_percentage: 50,
       contingency_percentage: 15,
+      ...initialValues,
     },
   })
 
@@ -89,14 +93,21 @@ export function ProyectoForm({ clients }: ProyectoFormProps) {
   }
 
   const onSubmit = async (values: FormValues) => {
-    const res = await fetch("/api/proyectos", {
-      method: "POST",
+    const url = isEditing ? `/api/proyectos/${projectId}` : "/api/proyectos"
+    const method = isEditing ? "PATCH" : "POST"
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values),
     })
     const json = await res.json()
     if (json.success) {
-      router.push(`/dashboard/proyectos/${json.data.id}`)
+      if (isEditing) {
+        router.push(`/dashboard/proyectos/${projectId}`)
+        router.refresh()
+      } else {
+        router.push(`/dashboard/proyectos/${json.data.id}`)
+      }
     }
   }
 
@@ -135,7 +146,7 @@ export function ProyectoForm({ clients }: ProyectoFormProps) {
             </Button>
           </div>
         ) : (
-          <Select onValueChange={(v) => setValue("client_id", v)}>
+          <Select value={watch("client_id") || undefined} onValueChange={(v) => setValue("client_id", v)}>
             <SelectTrigger id="client_id" className={errors.client_id ? "border-destructive" : ""}>
               <SelectValue placeholder="Seleccionar cliente" />
             </SelectTrigger>
@@ -277,8 +288,10 @@ export function ProyectoForm({ clients }: ProyectoFormProps) {
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Creando...
+              {isEditing ? "Guardando..." : "Creando..."}
             </>
+          ) : isEditing ? (
+            "Guardar cambios"
           ) : (
             "Crear proyecto"
           )}

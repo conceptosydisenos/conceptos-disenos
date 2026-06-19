@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { db } from "@/lib/db"
-import { projects, clients, advances, invoice_allocations, work_cuts, project_extras } from "@/lib/db/schema"
+import { projects, clients, advances, invoice_allocations, work_cuts, project_extras, budget_items } from "@/lib/db/schema"
 import { getCurrentUser } from "@/lib/auth"
 import { Header } from "@/components/layout/Header"
 import { Badge } from "@/components/ui/badge"
@@ -20,9 +20,11 @@ import {
   CreditCard,
   BarChart3,
   FileText,
+  Pencil,
 } from "lucide-react"
 import { ProjectStatusSelect } from "@/components/proyectos/ProjectStatusSelect"
 import { ExtrasSection } from "@/components/proyectos/ExtrasSection"
+import { BudgetSection } from "@/components/proyectos/BudgetSection"
 
 export const revalidate = 0
 
@@ -64,7 +66,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
 
   if (!project) notFound()
 
-  const [advancesResult, invoiceCostResult, cutsResult, extrasRows] = await Promise.all([
+  const [advancesResult, invoiceCostResult, cutsResult, extrasRows, budgetRows] = await Promise.all([
     db
       .select({ total: sql<string>`coalesce(sum(amount)::numeric, 0)` })
       .from(advances)
@@ -94,6 +96,12 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       .from(project_extras)
       .where(eq(project_extras.project_id, params.id))
       .orderBy(desc(project_extras.created_at)),
+
+    db
+      .select()
+      .from(budget_items)
+      .where(eq(budget_items.project_id, params.id))
+      .orderBy(budget_items.category, budget_items.name),
   ])
 
   const quoted = parseFloat(project.quoted_amount)
@@ -134,7 +142,14 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
               )}
             </div>
             {isAdmin ? (
-              <ProjectStatusSelect projectId={project.id} currentStatus={project.status} />
+              <div className="flex items-center gap-2 shrink-0">
+                <ProjectStatusSelect projectId={project.id} currentStatus={project.status} />
+                <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                  <Link href={`/dashboard/proyectos/${project.id}/editar`} title="Editar proyecto">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Link>
+                </Button>
+              </div>
             ) : (
               <Badge variant="outline" className={`shrink-0 ${statusInfo.className}`}>
                 {statusInfo.label}
@@ -230,6 +245,21 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
             </Button>
           </div>
         </div>
+
+        {/* Presupuesto de actividades */}
+        <BudgetSection
+          projectId={project.id}
+          isAdmin={isAdmin}
+          initialItems={budgetRows.map((b) => ({
+            id: b.id,
+            name: b.name,
+            category: b.category,
+            unit: b.unit,
+            quantity: b.quantity,
+            unit_price: b.unit_price,
+            total_price: b.total_price,
+          }))}
+        />
 
         {/* Extras de obra */}
         <ExtrasSection projectId={project.id} isAdmin={isAdmin} initialExtras={initialExtras} />
