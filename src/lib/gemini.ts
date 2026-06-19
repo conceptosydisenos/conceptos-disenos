@@ -60,7 +60,11 @@ export async function extractInvoiceData(
     },
   })
 
-  const imageResponse = await fetch(imageUrl)
+  const imageResponse = await fetch(imageUrl, {
+    headers: process.env.BLOB_READ_WRITE_TOKEN
+      ? { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` }
+      : {},
+  })
   if (!imageResponse.ok) {
     throw new Error(`Failed to fetch invoice image: ${imageResponse.status}`)
   }

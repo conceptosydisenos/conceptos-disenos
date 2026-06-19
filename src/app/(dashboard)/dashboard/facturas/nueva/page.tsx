@@ -63,7 +63,7 @@ export default function NuevaFacturaPage() {
           {/* Preview thumbnail */}
           <div className="rounded-lg overflow-hidden border aspect-video bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl} alt="Factura" className="w-full h-full object-contain" />
+            <img src={`/api/blob?url=${encodeURIComponent(imageUrl)}`} alt="Factura" className="w-full h-full object-contain" />
           </div>
           <OCRReview imageUrl={imageUrl} ocrData={ocrData} />
         </div>

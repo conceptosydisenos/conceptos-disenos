@@ -52,6 +52,7 @@ export function ProyectoForm({ clients, projectId, initialValues }: ProyectoForm
   const [showNewClient, setShowNewClient] = useState(false)
   const [creatingClient, setCreatingClient] = useState(false)
   const [clientList, setClientList] = useState<Client[]>(clients)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const {
     register,
@@ -93,21 +94,23 @@ export function ProyectoForm({ clients, projectId, initialValues }: ProyectoForm
   }
 
   const onSubmit = async (values: FormValues) => {
+    setSubmitError(null)
     const url = isEditing ? `/api/proyectos/${projectId}` : "/api/proyectos"
     const method = isEditing ? "PATCH" : "POST"
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    })
-    const json = await res.json()
-    if (json.success) {
-      if (isEditing) {
-        router.push(`/dashboard/proyectos/${projectId}`)
-        router.refresh()
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      })
+      const json = await res.json()
+      if (json.success) {
+        router.push(isEditing ? `/dashboard/proyectos/${projectId}` : `/dashboard/proyectos/${json.data.id}`)
       } else {
-        router.push(`/dashboard/proyectos/${json.data.id}`)
+        setSubmitError(json.error ?? "Error al guardar. Intenta de nuevo.")
       }
+    } catch {
+      setSubmitError("Error de conexión. Verifica tu red e intenta de nuevo.")
     }
   }
 
@@ -272,6 +275,11 @@ export function ProyectoForm({ clients, projectId, initialValues }: ProyectoForm
           <Input id="estimated_end_date" type="date" {...register("estimated_end_date")} />
         </div>
       </div>
+
+      {/* Submit error */}
+      {submitError && (
+        <p className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">{submitError}</p>
+      )}
 
       {/* Submit */}
       <div className="flex gap-3 pt-2">

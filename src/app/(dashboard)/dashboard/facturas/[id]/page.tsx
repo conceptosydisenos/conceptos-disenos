@@ -151,10 +151,10 @@ export default async function FacturaDetailPage({ params }: Props) {
       {invoice.image_url && (
         <div className="section-card space-y-2">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Imagen</h2>
-          <a href={invoice.image_url} target="_blank" rel="noopener noreferrer" className="block">
+          <a href={`/api/blob?url=${encodeURIComponent(invoice.image_url)}`} target="_blank" rel="noopener noreferrer" className="block">
             <div className="rounded-lg overflow-hidden border aspect-video bg-muted">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={invoice.image_url} alt="Factura" className="w-full h-full object-contain" />
+              <img src={`/api/blob?url=${encodeURIComponent(invoice.image_url)}`} alt="Factura" className="w-full h-full object-contain" />
             </div>
             <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
               <FileImage className="w-3 h-3" />

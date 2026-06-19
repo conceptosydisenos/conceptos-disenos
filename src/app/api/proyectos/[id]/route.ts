@@ -91,21 +91,23 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const body = await req.json()
     const data = patchSchema.parse(body)
 
-    const setFields: Record<string, unknown> = { updated_at: new Date() }
-    if (data.status !== undefined) setFields.status = data.status
-    if (data.actual_end_date !== undefined) setFields.actual_end_date = data.actual_end_date
-    if (data.name !== undefined) setFields.name = data.name
-    if (data.description !== undefined) setFields.description = data.description
-    if (data.client_id !== undefined) setFields.client_id = data.client_id
-    if (data.quoted_amount !== undefined) setFields.quoted_amount = String(data.quoted_amount)
-    if (data.advance_percentage !== undefined) setFields.advance_percentage = String(data.advance_percentage)
-    if (data.contingency_percentage !== undefined) setFields.contingency_percentage = String(data.contingency_percentage)
-    if (data.start_date !== undefined) setFields.start_date = data.start_date
-    if (data.estimated_end_date !== undefined) setFields.estimated_end_date = data.estimated_end_date
-
     const [updated] = await db
       .update(projects)
-      .set(setFields)
+      .set({
+        updated_at: new Date(),
+        ...(data.status !== undefined && { status: data.status }),
+        ...(data.actual_end_date !== undefined && { actual_end_date: data.actual_end_date }),
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.client_id !== undefined && { client_id: data.client_id }),
+        ...(data.quoted_amount !== undefined && { quoted_amount: String(data.quoted_amount) }),
+        ...(data.advance_percentage !== undefined && { advance_percentage: String(data.advance_percentage) }),
+        ...(data.contingency_percentage !== undefined && { contingency_percentage: String(data.contingency_percentage) }),
+        ...(data.start_date !== undefined && { start_date: data.start_date }),
+        ...(data.estimated_end_date !== undefined && {
+          estimated_end_date: data.estimated_end_date || null,
+        }),
+      })
       .where(and(eq(projects.id, params.id), isNull(projects.deleted_at)))
       .returning({ id: projects.id, status: projects.status })
 
