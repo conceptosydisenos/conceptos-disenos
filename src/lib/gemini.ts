@@ -60,12 +60,26 @@ export async function extractInvoiceData(
     },
   })
 
-  const imageResponse = await fetch(imageUrl, {
-    headers: process.env.BLOB_READ_WRITE_TOKEN
+  let parsedImageUrl: URL
+  try {
+    parsedImageUrl = new URL(imageUrl)
+  } catch {
+    throw new Error("Invalid invoice image URL")
+  }
+  const isVercelBlob =
+    parsedImageUrl.protocol === "https:" &&
+    (parsedImageUrl.hostname === "vercel-storage.com" ||
+      parsedImageUrl.hostname.toLowerCase().endsWith(".vercel-storage.com"))
+  const imageHeaders: Record<string, string> =
+    isVercelBlob && process.env.BLOB_READ_WRITE_TOKEN
       ? { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` }
-      : {},
+      : {}
+
+  const imageResponse = await fetch(parsedImageUrl.toString(), {
+    headers: imageHeaders,
+    redirect: "manual",
   })
-  if (!imageResponse.ok) {
+  if (!imageResponse.ok || imageResponse.status >= 300) {
     throw new Error(`Failed to fetch invoice image: ${imageResponse.status}`)
   }
 
