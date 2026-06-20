@@ -74,7 +74,10 @@ export async function extractInvoiceData(
     throw new Error("Invoice image URL must point to Vercel Blob storage")
   }
 
-  const imageResponse = await fetch(parsedImageUrl.toString(), { redirect: "manual" })
+  const imageResponse = await fetch(parsedImageUrl.toString(), {
+    headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+    redirect: "manual",
+  })
   if (!imageResponse.ok || imageResponse.status >= 300) {
     throw new Error(`Failed to fetch invoice image: ${imageResponse.status}`)
   }

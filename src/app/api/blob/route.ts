@@ -44,7 +44,10 @@ export async function GET(req: NextRequest) {
   const { valid } = isVercelBlobHost(url)
   if (!valid) return new NextResponse("Invalid url", { status: 400 })
 
-  const blobResponse = await fetch(url, { redirect: "manual" })
+  const blobResponse = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+    redirect: "manual",
+  })
 
   // Refuse to follow any redirect — re-validation would be needed
   if (blobResponse.status >= 300 && blobResponse.status < 400) {
