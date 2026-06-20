@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
+import { get } from "@vercel/blob"
 
 const ALLOWED_CONTENT_TYPES = new Set([
   "image/jpeg",
@@ -44,28 +45,18 @@ export async function GET(req: NextRequest) {
   const { valid } = isVercelBlobHost(url)
   if (!valid) return new NextResponse("Invalid url", { status: 400 })
 
-  const blobResponse = await fetch(url, {
-    headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
-    redirect: "manual",
-  })
+  const blobResult = await get(url, { access: "private" })
 
-  // Refuse to follow any redirect — re-validation would be needed
-  if (blobResponse.status >= 300 && blobResponse.status < 400) {
+  if (!blobResult || !blobResult.stream) {
     return new NextResponse("Image not found", { status: 404 })
   }
 
-  if (!blobResponse.ok) {
-    return new NextResponse("Image not found", { status: blobResponse.status })
-  }
-
-  const rawType = blobResponse.headers.get("content-type")?.split(";")[0].trim() ?? ""
+  const rawType = blobResult.blob.contentType?.split(";")[0].trim() ?? ""
   if (!ALLOWED_CONTENT_TYPES.has(rawType)) {
     return new NextResponse("Unsupported media type", { status: 415 })
   }
 
-  const data = await blobResponse.arrayBuffer()
-
-  return new NextResponse(data, {
+  return new NextResponse(blobResult.stream, {
     headers: {
       "Content-Type": rawType,
       "Cache-Control": "private, max-age=3600",

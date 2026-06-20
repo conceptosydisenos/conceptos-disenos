@@ -35,9 +35,7 @@ export async function POST(req: NextRequest) {
   const filename = `facturas/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`
 
   try {
-    // TypeScript types in @vercel/blob v0.24 only expose 'public'; the store is
-    // private so we cast to satisfy the compiler while using the correct runtime value.
-    const { url } = await put(filename, file, { access: "private" as "public" })
+    const { url } = await put(filename, file, { access: "private" })
     return NextResponse.json(apiSuccess({ url }))
   } catch (err) {
     console.error("[uploads] Blob upload failed:", {
