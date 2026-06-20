@@ -60,8 +60,22 @@ export async function extractInvoiceData(
     },
   })
 
-  const imageResponse = await fetch(imageUrl)
-  if (!imageResponse.ok) {
+  let parsedImageUrl: URL
+  try {
+    parsedImageUrl = new URL(imageUrl)
+  } catch {
+    throw new Error("Invalid invoice image URL")
+  }
+  const host = parsedImageUrl.hostname.toLowerCase().replace(/\.$/, "")
+  if (
+    parsedImageUrl.protocol !== "https:" ||
+    !(host === "vercel-storage.com" || host.endsWith(".vercel-storage.com"))
+  ) {
+    throw new Error("Invoice image URL must point to Vercel Blob storage")
+  }
+
+  const imageResponse = await fetch(parsedImageUrl.toString(), { redirect: "manual" })
+  if (!imageResponse.ok || imageResponse.status >= 300) {
     throw new Error(`Failed to fetch invoice image: ${imageResponse.status}`)
   }
 

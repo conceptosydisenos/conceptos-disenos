@@ -64,6 +64,7 @@ CameraCapture → /api/uploads → Vercel Blob (URL)
 4. **Financial numbers**: always `NUMERIC(15,2)` in DB; use `parseFloat()` only at display time.
 5. **tabular-nums on every monetary display**: apply `.amount` or `.tabular-nums` CSS class.
 6. **Mobile-first**: build for 390px first, then scale up. David uses this in the field.
+7. **UI changes require both viewports**: every interface fix must be verified at 390px (mobile) AND 1280px+ (desktop) before push. Never ship a UI change that only works on one viewport.
 
 ## Design System
 
