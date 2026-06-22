@@ -7,6 +7,10 @@ import {
   timestamp,
   jsonb,
   integer,
+  boolean,
+  index,
+  uniqueIndex,
+  foreignKey,
 } from "drizzle-orm/pg-core"
 
 // ── Shared timestamp columns ─────────────────────────────────
@@ -14,6 +18,53 @@ const timestamps = {
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }
+
+// ── Shared enum constants ─────────────────────────────────────
+// Exported so quote_items and budget_items share the exact same values.
+// The conversion cotización→proyecto copies quote_items to budget_items;
+// a mismatch here would produce invalid rows at runtime.
+export const BUDGET_CATEGORIES = [
+  "materiales",
+  "mano_obra",
+  "equipos",
+  "imprevistos",
+  "otro",
+] as const
+
+export const LEAD_SOURCES = [
+  "referido",
+  "web",
+  "redes",
+  "whatsapp",
+  "llamada_directa",
+  "otro",
+] as const
+
+export const LEAD_STATUSES = [
+  "new",
+  "contacted",
+  "quoted",
+  "won",
+  "lost",
+] as const
+
+export const QUOTE_STATUSES = [
+  "draft",
+  "sent",
+  "approved",
+  "rejected",
+  "converted",
+] as const
+
+export const LEAD_ACTIVITY_TYPES = [
+  "llamada",
+  "email",
+  "visita",
+  "whatsapp",
+  "nota",
+  "cotizacion_enviada",
+  "cambio_estado",
+] as const
 
 // ── users ────────────────────────────────────────────────────
 // Synced from Clerk via webhook at /api/webhooks/clerk
@@ -320,72 +371,145 @@ export const project_extras = pgTable("project_extras", {
 })
 
 // ── leads [Fase 2] ───────────────────────────────────────────
-export const leads = pgTable("leads", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  contact_name: text("contact_name").notNull(),
-  contact_phone: text("contact_phone").notNull(),
-  contact_email: text("contact_email"),
-  project_description: text("project_description").notNull(),
-  estimated_value: numeric("estimated_value", { precision: 15, scale: 2 }),
-  source: text("source", {
-    enum: ["referido", "web", "redes", "otro"],
+// Pipeline: new → contacted → quoted → won/lost
+// RULE: deleted_at IS NULL on all listings.
+// RULE: status='lost' is a commercial outcome (counts in funnel metrics).
+//       deleted_at is for spam/duplicates (does NOT count in metrics).
+export const leads = pgTable(
+  "leads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    contact_name: text("contact_name").notNull(),
+    contact_phone: text("contact_phone").notNull(),
+    contact_email: text("contact_email"),
+    project_description: text("project_description").notNull(),
+    estimated_value: numeric("estimated_value", { precision: 15, scale: 2 }),
+    source: text("source", { enum: LEAD_SOURCES }).notNull().default("otro"),
+    status: text("status", { enum: LEAD_STATUSES }).notNull().default("new"),
+    assigned_to: uuid("assigned_to").references(() => users.id),
+    next_follow_up_at: timestamp("next_follow_up_at", { withTimezone: true }),
+    // Filled ONLY when status = 'won'
+    converted_to_client_id: uuid("converted_to_client_id").references(() => clients.id),
+    lost_reason: text("lost_reason"),
+    closed_at: timestamp("closed_at", { withTimezone: true }),
+    notes: text("notes"),
+    deleted_at: timestamp("deleted_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => ({
+    statusIdx:    index("leads_status_idx").on(t.status),
+    assignedIdx:  index("leads_assigned_to_idx").on(t.assigned_to),
+    followUpIdx:  index("leads_next_follow_up_idx").on(t.next_follow_up_at),
+    convertedIdx: index("leads_converted_client_idx").on(t.converted_to_client_id),
   })
-    .notNull()
-    .default("otro"),
-  status: text("status", {
-    enum: ["new", "contacted", "quoted", "won", "lost"],
+)
+
+// ── lead_activities [Fase 2] ─────────────────────────────────
+// Append-only history: calls, emails, visits, notes, automated events.
+// Never update a past activity — commercial audit trail.
+export const lead_activities = pgTable(
+  "lead_activities",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    lead_id: uuid("lead_id").references(() => leads.id).notNull(),
+    activity_type: text("activity_type", { enum: LEAD_ACTIVITY_TYPES }).notNull(),
+    // When the interaction actually happened (may differ from created_at
+    // e.g. retroactive logging of a call made yesterday).
+    occurred_at: timestamp("occurred_at", { withTimezone: true }).defaultNow().notNull(),
+    summary: text("summary").notNull(),
+    outcome: text("outcome"),
+    // For automated status-change events
+    previous_status: text("previous_status", { enum: LEAD_STATUSES }),
+    new_status: text("new_status", { enum: LEAD_STATUSES }),
+    created_by: uuid("created_by").references(() => users.id).notNull(),
+    created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    leadOccurredIdx: index("lead_activities_lead_occurred_idx").on(t.lead_id, t.occurred_at),
   })
-    .notNull()
-    .default("new"),
-  assigned_to: uuid("assigned_to").references(() => users.id),
-  notes: text("notes"),
-  ...timestamps,
-})
+)
 
 // ── quotes [Fase 2] ──────────────────────────────────────────
-export const quotes = pgTable("quotes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  lead_id: uuid("lead_id").references(() => leads.id),
-  client_id: uuid("client_id").references(() => clients.id),
-  project_name: text("project_name").notNull(),
-  description: text("description"),
-  total_amount: numeric("total_amount", { precision: 15, scale: 2 }).notNull(),
-  advance_amount: numeric("advance_amount", {
-    precision: 15,
-    scale: 2,
-  }).notNull(),
-  contingency_percentage: numeric("contingency_percentage", {
-    precision: 5,
-    scale: 2,
+// VERSIONING: each version is a row. parent_quote_id always points to the
+//   root (flat chain, no recursion needed). Only is_current_version=true
+//   can be approved/converted.
+// quote_number format: COT-YYYY-NNNN (generated in app, reset per year).
+// RULE: subtotal_amount = Σ(quote_items.total_price)
+//       total_amount    = subtotal_amount − discount_amount
+// RULE: deleted_at IS NULL on all listings.
+export const quotes = pgTable(
+  "quotes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Human-readable folio shared across versions of the same chain.
+    quote_number: text("quote_number").notNull(),
+    lead_id: uuid("lead_id").references(() => leads.id),
+    client_id: uuid("client_id").references(() => clients.id),
+    // ── Versioning ──
+    parent_quote_id: uuid("parent_quote_id"), // self-FK defined below via foreignKey()
+    version_number: integer("version_number").notNull().default(1),
+    is_current_version: boolean("is_current_version").notNull().default(true),
+    project_name: text("project_name").notNull(),
+    description: text("description"),
+    // Contact info on the quote (may differ from client record)
+    contact_name: text("contact_name"),
+    contact_email: text("contact_email"),
+    contact_phone: text("contact_phone"),
+    // ── Amounts ──
+    subtotal_amount: numeric("subtotal_amount", { precision: 15, scale: 2 }).notNull(),
+    discount_percentage: numeric("discount_percentage", { precision: 5, scale: 2 }).notNull().default("0.00"),
+    discount_amount: numeric("discount_amount", { precision: 15, scale: 2 }).notNull().default("0.00"),
+    total_amount: numeric("total_amount", { precision: 15, scale: 2 }).notNull(),
+    advance_percentage: numeric("advance_percentage", { precision: 5, scale: 2 }).notNull().default("50.00"),
+    advance_amount: numeric("advance_amount", { precision: 15, scale: 2 }).notNull(),
+    contingency_percentage: numeric("contingency_percentage", { precision: 5, scale: 2 }).notNull().default("15.00"),
+    status: text("status", { enum: QUOTE_STATUSES }).notNull().default("draft"),
+    valid_until: date("valid_until").notNull(),
+    // ── State traceability ──
+    sent_at: timestamp("sent_at", { withTimezone: true }),
+    decided_at: timestamp("decided_at", { withTimezone: true }),
+    rejection_reason: text("rejection_reason"),
+    // ── Conversion ──
+    converted_to_project_id: uuid("converted_to_project_id").references(() => projects.id),
+    created_by: uuid("created_by").references(() => users.id).notNull(),
+    deleted_at: timestamp("deleted_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => ({
+    statusIdx:       index("quotes_status_idx").on(t.status),
+    leadIdx:         index("quotes_lead_id_idx").on(t.lead_id),
+    clientIdx:       index("quotes_client_id_idx").on(t.client_id),
+    parentIdx:       index("quotes_parent_quote_id_idx").on(t.parent_quote_id),
+    convertedIdx:    index("quotes_converted_project_idx").on(t.converted_to_project_id),
+    numberVersionUq: uniqueIndex("quotes_number_version_uq").on(t.quote_number, t.version_number),
+    parentFk: foreignKey({
+      columns: [t.parent_quote_id],
+      foreignColumns: [t.id],
+      name: "quotes_parent_quote_id_fk",
+    }),
   })
-    .notNull()
-    .default("15.00"),
-  status: text("status", {
-    enum: ["draft", "sent", "approved", "rejected", "converted"],
-  })
-    .notNull()
-    .default("draft"),
-  valid_until: date("valid_until").notNull(),
-  converted_to_project_id: uuid("converted_to_project_id").references(
-    () => projects.id
-  ),
-  created_by: uuid("created_by")
-    .references(() => users.id)
-    .notNull(),
-  ...timestamps,
-})
+)
 
 // ── quote_items [Fase 2] ─────────────────────────────────────
-export const quote_items = pgTable("quote_items", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  quote_id: uuid("quote_id")
-    .references(() => quotes.id)
-    .notNull(),
-  category: text("category").notNull(),
-  name: text("name").notNull(),
-  unit: text("unit").notNull(),
-  quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(),
-  unit_price: numeric("unit_price", { precision: 15, scale: 2 }).notNull(),
-  total_price: numeric("total_price", { precision: 15, scale: 2 }).notNull(),
-  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-})
+// Uses the same BUDGET_CATEGORIES enum as budget_items.
+// The conversion quote→project copies these 1:1 into budget_items;
+// a category mismatch would produce an invalid insert at runtime.
+export const quote_items = pgTable(
+  "quote_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    quote_id: uuid("quote_id").references(() => quotes.id).notNull(),
+    category: text("category", { enum: BUDGET_CATEGORIES }).notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    unit: text("unit").notNull(),
+    quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(),
+    unit_price: numeric("unit_price", { precision: 15, scale: 2 }).notNull(),
+    total_price: numeric("total_price", { precision: 15, scale: 2 }).notNull(),
+    sort_order: integer("sort_order").notNull().default(0),
+    created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    quoteIdx: index("quote_items_quote_id_idx").on(t.quote_id),
+  })
+)
