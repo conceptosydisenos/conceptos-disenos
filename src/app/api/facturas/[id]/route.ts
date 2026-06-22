@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { invoices, invoice_allocations, projects } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { z } from "zod"
 
 const patchSchema = z.object({
@@ -51,7 +51,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
-    await requireAuth()
+    const user = await requireAuth()
 
     const body: unknown = await req.json()
     const parsed = patchSchema.safeParse(body)
@@ -59,10 +59,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ success: false, error: "Datos inválidos" }, { status: 400 })
     }
 
+    // Admins can edit any invoice; other roles can only edit their own
+    const ownershipFilter =
+      user.role === "admin"
+        ? eq(invoices.id, params.id)
+        : and(eq(invoices.id, params.id), eq(invoices.created_by, user.id))
+
     const [existing] = await db
       .select({ id: invoices.id })
       .from(invoices)
-      .where(eq(invoices.id, params.id))
+      .where(ownershipFilter)
 
     if (!existing) {
       return NextResponse.json({ success: false, error: "Factura no encontrada" }, { status: 404 })
@@ -78,7 +84,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ...(tax_amount !== undefined && { tax_amount: String(tax_amount) }),
         ...(total_amount !== undefined && { total_amount: String(total_amount) }),
       })
-      .where(eq(invoices.id, params.id))
+      .where(ownershipFilter)
       .returning()
 
     return NextResponse.json({ success: true, data: updated })

@@ -1,7 +1,7 @@
 import { db } from "@/lib/db"
 import { invoices } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
@@ -12,12 +12,17 @@ interface Props {
 }
 
 export default async function EditarFacturaPage({ params }: Props) {
-  await requireAuth()
+  const user = await requireAuth()
+
+  const ownershipFilter =
+    user.role === "admin"
+      ? eq(invoices.id, params.id)
+      : and(eq(invoices.id, params.id), eq(invoices.created_by, user.id))
 
   const [invoice] = await db
     .select()
     .from(invoices)
-    .where(eq(invoices.id, params.id))
+    .where(ownershipFilter)
 
   if (!invoice) notFound()
 
