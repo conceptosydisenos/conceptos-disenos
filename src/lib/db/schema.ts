@@ -33,6 +33,9 @@ export const BUDGET_CATEGORIES = [
 
 export const LEAD_SOURCES = [
   "referido",
+  "voz_a_voz",
+  "volante",
+  "aliado",
   "web",
   "redes",
   "whatsapp",
@@ -43,6 +46,7 @@ export const LEAD_SOURCES = [
 export const LEAD_STATUSES = [
   "new",
   "contacted",
+  "visit_scheduled",
   "quoted",
   "won",
   "lost",
@@ -387,6 +391,7 @@ export const leads = pgTable(
     source: text("source", { enum: LEAD_SOURCES }).notNull().default("otro"),
     status: text("status", { enum: LEAD_STATUSES }).notNull().default("new"),
     assigned_to: uuid("assigned_to").references(() => users.id),
+    project_address: text("project_address"),
     next_follow_up_at: timestamp("next_follow_up_at", { withTimezone: true }),
     // Filled ONLY when status = 'won'
     converted_to_client_id: uuid("converted_to_client_id").references(() => clients.id),

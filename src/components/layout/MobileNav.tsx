@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, FolderOpen, Camera, Scissors, MoreHorizontal, Users } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Camera, Scissors, MoreHorizontal, Users, UserRoundSearch } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface MobileNavProps {
@@ -16,13 +16,17 @@ export function MobileNav({ role }: MobileNavProps) {
     exact ? pathname === href : pathname === href || pathname.startsWith(href.split("/").slice(0, 3).join("/") + "/")
 
   const tabs = [
-    { href: "/dashboard", icon: LayoutDashboard, label: "Inicio", exact: true },
-    { href: "/dashboard/proyectos", icon: FolderOpen, label: "Proyectos" },
-    { href: "/dashboard/facturas/nueva", icon: Camera, label: "Factura", primary: true },
-    { href: "/dashboard/cortes", icon: Scissors, label: "Cortes" },
+    { href: "/dashboard",              icon: LayoutDashboard,  label: "Inicio",   exact: true },
     role === "admin"
-      ? { href: "/dashboard/clientes", icon: Users, label: "Clientes" }
-      : { href: "/dashboard/menu", icon: MoreHorizontal, label: "Más" },
+      ? { href: "/dashboard/leads",    icon: UserRoundSearch,  label: "Leads" }
+      : { href: "/dashboard/proyectos",icon: FolderOpen,       label: "Proyectos" },
+    { href: "/dashboard/facturas/nueva", icon: Camera,         label: "Factura",  primary: true },
+    role === "admin"
+      ? { href: "/dashboard/proyectos",icon: FolderOpen,       label: "Proyectos" }
+      : { href: "/dashboard/cortes",   icon: Scissors,         label: "Cortes" },
+    role === "admin"
+      ? { href: "/dashboard/clientes", icon: Users,            label: "Clientes" }
+      : { href: "/dashboard/menu",     icon: MoreHorizontal,   label: "Más" },
   ] as const
 
   return (

@@ -14,12 +14,14 @@ import {
   LogOut,
   TrendingUp,
   FileUp,
+  UserRoundSearch,
 } from "lucide-react"
 import { useClerk } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Resumen", exact: true },
+  { href: "/dashboard/leads", icon: UserRoundSearch, label: "Leads" },
   { href: "/dashboard/proyectos", icon: FolderOpen, label: "Proyectos" },
   { href: "/dashboard/facturas", icon: Receipt, label: "Facturas" },
   { href: "/dashboard/cortes", icon: Scissors, label: "Cortes de obra" },
