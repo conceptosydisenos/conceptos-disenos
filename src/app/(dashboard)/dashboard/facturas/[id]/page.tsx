@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Building2,
   ChevronRight,
+  Pencil,
 } from "lucide-react"
 
 export const revalidate = 0
@@ -71,6 +72,12 @@ export default async function FacturaDetailPage({ params }: Props) {
           <h1 className="text-lg font-bold truncate">{invoice.supplier_name}</h1>
           <p className="text-xs text-muted-foreground">{invoice.invoice_number} · {invoice.invoice_date}</p>
         </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0 h-8 gap-1.5">
+          <Link href={`/dashboard/facturas/${params.id}/editar`}>
+            <Pencil className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Editar</span>
+          </Link>
+        </Button>
       </div>
 
       {/* Status badge */}

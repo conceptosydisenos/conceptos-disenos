@@ -201,7 +201,7 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
             </Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-              <Input id="subtotal" type="number" min={0} step={1000} className="pl-7 tabular-nums" {...register("subtotal")} />
+              <Input id="subtotal" type="number" min={0} step={1} className="pl-7 tabular-nums" {...register("subtotal")} />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -210,7 +210,7 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
             </Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-              <Input id="tax_amount" type="number" min={0} step={1000} className="pl-7 tabular-nums" {...register("tax_amount")} />
+              <Input id="tax_amount" type="number" min={0} step={1} className="pl-7 tabular-nums" {...register("tax_amount")} />
             </div>
           </div>
         </div>
@@ -225,7 +225,7 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
               id="total_amount"
               type="number"
               min={0}
-              step={1000}
+              step={1}
               className={`pl-7 tabular-nums text-base font-bold ${errors.total_amount ? "border-destructive" : ""}`}
               {...register("total_amount")}
             />
