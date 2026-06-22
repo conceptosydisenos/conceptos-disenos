@@ -183,6 +183,45 @@ export function getMarginStatus(marginPct: number): MarginStatus {
   return "red"
 }
 
+// ── Quote Totals ─────────────────────────────────────────────
+
+export interface QuoteTotals {
+  subtotal_amount: number
+  discount_amount: number
+  tax_amount: number
+  total_amount: number
+  advance_amount: number
+}
+
+/**
+ * Derives all monetary totals for a quote from its items and percentage inputs.
+ *
+ * Formula:
+ *   discount = subtotal × (discountPct / 100)
+ *   tax      = (subtotal − discount) × (taxPct / 100)
+ *   total    = subtotal − discount + tax
+ *   advance  = total × (advancePct / 100)
+ */
+export function calculateQuoteTotals(
+  items: { total_price: string | number }[],
+  discountPercentage: number | string,
+  taxPercentage: number | string,
+  advancePercentage: number | string
+): QuoteTotals {
+  const subtotal = items.reduce((s, i) => s + parseFloat(String(i.total_price)), 0)
+  const discPct  = parseFloat(String(discountPercentage))
+  const taxPct   = parseFloat(String(taxPercentage))
+  const advPct   = parseFloat(String(advancePercentage))
+
+  const discount = (subtotal * discPct) / 100
+  const taxable  = subtotal - discount
+  const tax      = (taxable * taxPct) / 100
+  const total    = taxable + tax
+  const advance  = (total * advPct) / 100
+
+  return { subtotal_amount: subtotal, discount_amount: discount, tax_amount: tax, total_amount: total, advance_amount: advance }
+}
+
 // ── Cumulative Cut Progress ───────────────────────────────────
 
 /**

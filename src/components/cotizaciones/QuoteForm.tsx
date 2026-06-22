@@ -1,0 +1,223 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+
+interface InitialValues {
+  project_name?: string
+  contact_name?: string
+  contact_phone?: string
+  contact_email?: string
+  lead_id?: string
+}
+
+interface Props {
+  initialValues?: InitialValues
+}
+
+function defaultValidUntil() {
+  const d = new Date()
+  d.setDate(d.getDate() + 30)
+  return d.toISOString().split("T")[0]
+}
+
+export function QuoteForm({ initialValues }: Props) {
+  const router = useRouter()
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+
+    const data = new FormData(e.currentTarget)
+
+    const body = {
+      project_name:           data.get("project_name"),
+      description:            data.get("description") || undefined,
+      lead_id:                initialValues?.lead_id || undefined,
+      contact_name:           data.get("contact_name") || undefined,
+      contact_phone:          data.get("contact_phone") || undefined,
+      contact_email:          data.get("contact_email") || undefined,
+      valid_until:            data.get("valid_until"),
+      discount_percentage:    Number(data.get("discount_percentage") ?? 0),
+      tax_percentage:         Number(data.get("tax_percentage") ?? 0),
+      advance_percentage:     Number(data.get("advance_percentage") ?? 50),
+      contingency_percentage: Number(data.get("contingency_percentage") ?? 15),
+    }
+
+    try {
+      const res = await fetch("/api/cotizaciones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json() as { success: boolean; error?: string; data?: { id: string } }
+
+      if (!json.success) {
+        setError(json.error ?? "Error al guardar")
+        setSaving(false)
+        return
+      }
+
+      router.push(`/dashboard/cotizaciones/${json.data!.id}`)
+      router.refresh()
+    } catch {
+      setError("Error de conexión")
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Proyecto */}
+      <div className="space-y-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Proyecto</p>
+        <div>
+          <Label htmlFor="project_name">Nombre del proyecto *</Label>
+          <Input
+            id="project_name"
+            name="project_name"
+            required
+            defaultValue={initialValues?.project_name ?? ""}
+            placeholder="Ej. Remodelación cocina y baños"
+            className="mt-1.5"
+          />
+        </div>
+        <div>
+          <Label htmlFor="description">
+            Descripción <span className="text-muted-foreground font-normal">(opcional)</span>
+          </Label>
+          <Textarea
+            id="description"
+            name="description"
+            rows={3}
+            placeholder="Alcance del trabajo, materiales incluidos, exclusiones..."
+            className="mt-1.5 resize-none"
+          />
+        </div>
+      </div>
+
+      {/* Contacto */}
+      <div className="space-y-4 pt-2 border-t border-border">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contacto</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="contact_name">Nombre</Label>
+            <Input
+              id="contact_name"
+              name="contact_name"
+              defaultValue={initialValues?.contact_name ?? ""}
+              placeholder="Cliente o empresa"
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="contact_phone">Teléfono</Label>
+            <Input
+              id="contact_phone"
+              name="contact_phone"
+              type="tel"
+              defaultValue={initialValues?.contact_phone ?? ""}
+              placeholder="300 123 4567"
+              className="mt-1.5"
+              inputMode="tel"
+            />
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="contact_email">Email</Label>
+          <Input
+            id="contact_email"
+            name="contact_email"
+            type="email"
+            defaultValue={initialValues?.contact_email ?? ""}
+            placeholder="correo@ejemplo.com"
+            className="mt-1.5"
+          />
+        </div>
+      </div>
+
+      {/* Condiciones */}
+      <div className="space-y-4 pt-2 border-t border-border">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Condiciones</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="valid_until">Válida hasta *</Label>
+            <Input
+              id="valid_until"
+              name="valid_until"
+              type="date"
+              required
+              defaultValue={defaultValidUntil()}
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="advance_percentage">Anticipo (%)</Label>
+            <Input
+              id="advance_percentage"
+              name="advance_percentage"
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              defaultValue={50}
+              className="mt-1.5 tabular-nums"
+              inputMode="numeric"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="discount_percentage">Descuento (%)</Label>
+            <Input
+              id="discount_percentage"
+              name="discount_percentage"
+              type="number"
+              min={0}
+              max={100}
+              step={0.1}
+              defaultValue={0}
+              className="mt-1.5 tabular-nums"
+              inputMode="decimal"
+            />
+          </div>
+          <div>
+            <Label htmlFor="tax_percentage">IVA (%)</Label>
+            <Input
+              id="tax_percentage"
+              name="tax_percentage"
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              defaultValue={0}
+              placeholder="Ej. 19"
+              className="mt-1.5 tabular-nums"
+              inputMode="numeric"
+            />
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <p className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</p>
+      )}
+
+      <div className="flex gap-3 pt-1">
+        <Button type="button" variant="outline" className="flex-1" onClick={() => router.back()}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={saving} className="flex-1">
+          {saving ? "Creando..." : "Crear cotización"}
+        </Button>
+      </div>
+    </form>
+  )
+}

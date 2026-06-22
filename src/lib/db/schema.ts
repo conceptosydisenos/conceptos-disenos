@@ -461,9 +461,15 @@ export const quotes = pgTable(
     contact_email: text("contact_email"),
     contact_phone: text("contact_phone"),
     // ── Amounts ──
+    // subtotal = Σ(quote_items.total_price)
+    // discount = subtotal × discount_percentage / 100
+    // tax      = (subtotal − discount) × tax_percentage / 100
+    // total    = subtotal − discount + tax
     subtotal_amount: numeric("subtotal_amount", { precision: 15, scale: 2 }).notNull(),
     discount_percentage: numeric("discount_percentage", { precision: 5, scale: 2 }).notNull().default("0.00"),
     discount_amount: numeric("discount_amount", { precision: 15, scale: 2 }).notNull().default("0.00"),
+    tax_percentage: numeric("tax_percentage", { precision: 5, scale: 2 }).notNull().default("0.00"),
+    tax_amount: numeric("tax_amount", { precision: 15, scale: 2 }).notNull().default("0.00"),
     total_amount: numeric("total_amount", { precision: 15, scale: 2 }).notNull(),
     advance_percentage: numeric("advance_percentage", { precision: 5, scale: 2 }).notNull().default("50.00"),
     advance_amount: numeric("advance_amount", { precision: 15, scale: 2 }).notNull(),

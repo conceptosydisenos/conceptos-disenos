@@ -8,6 +8,7 @@ import {
   validateAllocationTotal,
   isInvoiceOverdue,
   calculateBudgetProgress,
+  calculateQuoteTotals,
   calculateCumulativeProgress,
   getMarginStatus,
 } from "../src/lib/calculations"
@@ -186,5 +187,58 @@ describe("getMarginStatus", () => {
     expect(getMarginStatus(4.9)).toBe("red")
     expect(getMarginStatus(0)).toBe("red")
     expect(getMarginStatus(-10)).toBe("red")
+  })
+})
+
+describe("calculateQuoteTotals", () => {
+  const items = [
+    { total_price: "5000000" },
+    { total_price: "3000000" },
+  ] // subtotal = 8_000_000
+
+  it("no discount, no tax", () => {
+    const r = calculateQuoteTotals(items, 0, 0, 50)
+    expect(r.subtotal_amount).toBe(8_000_000)
+    expect(r.discount_amount).toBe(0)
+    expect(r.tax_amount).toBe(0)
+    expect(r.total_amount).toBe(8_000_000)
+    expect(r.advance_amount).toBe(4_000_000)
+  })
+
+  it("10% discount, 0% tax", () => {
+    const r = calculateQuoteTotals(items, 10, 0, 50)
+    expect(r.discount_amount).toBe(800_000)
+    expect(r.tax_amount).toBe(0)
+    expect(r.total_amount).toBe(7_200_000)
+  })
+
+  it("0% discount, 19% IVA", () => {
+    const r = calculateQuoteTotals(items, 0, 19, 50)
+    expect(r.discount_amount).toBe(0)
+    expect(r.tax_amount).toBeCloseTo(1_520_000)
+    expect(r.total_amount).toBeCloseTo(9_520_000)
+  })
+
+  it("10% discount + 19% IVA combined", () => {
+    const r = calculateQuoteTotals(items, 10, 19, 50)
+    // taxable = 8_000_000 - 800_000 = 7_200_000
+    // tax = 7_200_000 * 0.19 = 1_368_000
+    // total = 7_200_000 + 1_368_000 = 8_568_000
+    expect(r.discount_amount).toBe(800_000)
+    expect(r.tax_amount).toBeCloseTo(1_368_000)
+    expect(r.total_amount).toBeCloseTo(8_568_000)
+  })
+
+  it("accepts string percentages (numeric column values from DB)", () => {
+    const r = calculateQuoteTotals(items, "10.00", "19.00", "50.00")
+    expect(r.discount_amount).toBe(800_000)
+    expect(r.tax_amount).toBeCloseTo(1_368_000)
+  })
+
+  it("empty items list returns zeros", () => {
+    const r = calculateQuoteTotals([], 0, 19, 50)
+    expect(r.subtotal_amount).toBe(0)
+    expect(r.total_amount).toBe(0)
+    expect(r.advance_amount).toBe(0)
   })
 })

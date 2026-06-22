@@ -15,6 +15,13 @@
       "when": 1782165433644,
       "tag": "0001_rainy_the_hand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782167101295,
+      "tag": "0002_nosy_sue_storm",
+      "breakpoints": true
     }
   ]
 }
