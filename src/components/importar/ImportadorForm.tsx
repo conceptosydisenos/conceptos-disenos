@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Upload, FileText, X, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react"
+import { Upload, FileSpreadsheet, X, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react"
 
 interface ImportSummary {
   clients: { created: number; skipped: number }
@@ -15,12 +15,18 @@ interface ImportSummary {
 
 interface SelectedFile {
   name: string
-  content: string
   size: number
+  rawFile: File
 }
 
-const MAX_FILE_SIZE = 500 * 1024 // 500KB per file
-const MAX_FILES = 10
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB per file
+const MAX_FILES = 5
+
+const ACCEPTED_EXTENSIONS = [".xlsx", ".xls"]
+
+function isExcelFile(filename: string): boolean {
+  return ACCEPTED_EXTENSIONS.some((ext) => filename.toLowerCase().endsWith(ext))
+}
 
 export function ImportadorForm() {
   const [files, setFiles] = useState<SelectedFile[]>([])
@@ -29,7 +35,7 @@ export function ImportadorForm() {
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? [])
     setError(null)
 
@@ -38,33 +44,27 @@ export function ImportadorForm() {
       return
     }
 
-    const invalid = selected.filter((f) => !f.name.endsWith(".md"))
+    const invalid = selected.filter((f) => !isExcelFile(f.name))
     if (invalid.length > 0) {
-      setError("Solo se aceptan archivos .md (Markdown). Convierte tus Excel con MarkItDown primero.")
+      setError("Solo se aceptan archivos Excel (.xlsx o .xls).")
       return
     }
 
     const oversized = selected.filter((f) => f.size > MAX_FILE_SIZE)
     if (oversized.length > 0) {
-      setError(`Archivo demasiado grande. Máximo 500KB por archivo. Divide el Excel en hojas más pequeñas.`)
+      setError("Archivo demasiado grande. Máximo 5MB por archivo.")
       return
     }
 
-    const loaded: SelectedFile[] = await Promise.all(
-      selected.map(
-        (f) =>
-          new Promise<SelectedFile>((resolve) => {
-            const reader = new FileReader()
-            reader.onload = (ev) =>
-              resolve({ name: f.name, content: String(ev.target?.result ?? ""), size: f.size })
-            reader.readAsText(f, "utf-8")
-          })
-      )
-    )
+    const incoming: SelectedFile[] = selected.map((f) => ({
+      name: f.name,
+      size: f.size,
+      rawFile: f,
+    }))
 
     setFiles((prev) => {
       const names = new Set(prev.map((f) => f.name))
-      return [...prev, ...loaded.filter((f) => !names.has(f.name))]
+      return [...prev, ...incoming.filter((f) => !names.has(f.name))]
     })
 
     if (inputRef.current) inputRef.current.value = ""
@@ -82,19 +82,21 @@ export function ImportadorForm() {
     setSummary(null)
 
     try {
+      const formData = new FormData()
+      files.forEach((f) => formData.append("files", f.rawFile))
+
       const res = await fetch("/api/importar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ files: files.map((f) => ({ name: f.name, content: f.content })) }),
+        body: formData,
       })
 
-      const json = await res.json()
+      const json = await res.json() as { success: boolean; data?: ImportSummary; error?: string }
       if (!res.ok || !json.success) {
         setError(json.error ?? "Error al importar. Intenta de nuevo.")
         return
       }
 
-      setSummary(json.data)
+      setSummary(json.data ?? null)
       setFiles([])
     } catch {
       setError("Error de conexión. Verifica tu internet e intenta de nuevo.")
@@ -109,19 +111,6 @@ export function ImportadorForm() {
 
   return (
     <div className="space-y-6">
-      {/* Instructions */}
-      <div className="section-card bg-blue-50 border-blue-200 space-y-2">
-        <p className="text-sm font-semibold text-blue-800">Cómo preparar tus archivos</p>
-        <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
-          <li>Abre tu Excel y selecciona las hojas que quieres importar</li>
-          <li>
-            Convierte a Markdown con MarkItDown:{" "}
-            <code className="bg-blue-100 px-1 rounded font-mono">markitdown archivo.xlsx &gt; archivo.md</code>
-          </li>
-          <li>Sube el archivo .md aquí — la IA clasifica y distribuye los datos automáticamente</li>
-        </ol>
-      </div>
-
       {/* Drop zone */}
       <div
         className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 hover:bg-muted/30 transition-colors cursor-pointer"
@@ -129,15 +118,18 @@ export function ImportadorForm() {
       >
         <Upload className="w-8 h-8 text-muted-foreground/50 mx-auto mb-3" />
         <p className="text-sm font-medium text-foreground">
-          Arrastra tus archivos .md aquí o haz clic para seleccionar
+          Arrastra tu archivo Excel aquí o haz clic para seleccionar
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Máximo {MAX_FILES} archivos · 500KB por archivo · Solo .md
+          Sube tu Excel y el sistema clasificará los datos automáticamente
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-1">
+          Máximo {MAX_FILES} archivos · 5MB por archivo · .xlsx o .xls
         </p>
         <input
           ref={inputRef}
           type="file"
-          accept=".md,text/markdown"
+          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
           multiple
           className="hidden"
           onChange={handleFileChange}
@@ -155,7 +147,7 @@ export function ImportadorForm() {
               key={f.name}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50 border border-border"
             >
-              <FileText className="w-4 h-4 text-primary shrink-0" />
+              <FileSpreadsheet className="w-4 h-4 text-primary shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{f.name}</p>
                 <p className="text-xs text-muted-foreground">
@@ -215,10 +207,10 @@ export function ImportadorForm() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {(
               [
-                { label: "Clientes", key: "clients" as const, href: "/dashboard/proyectos" },
-                { label: "Proyectos", key: "projects" as const, href: "/dashboard/proyectos" },
-                { label: "Contratistas", key: "contractors" as const, href: "/dashboard/contratistas" },
-                { label: "Facturas", key: "invoices" as const, href: "/dashboard/facturas" },
+                { label: "Clientes", key: "clients" as const },
+                { label: "Proyectos", key: "projects" as const },
+                { label: "Contratistas", key: "contractors" as const },
+                { label: "Facturas", key: "invoices" as const },
               ] as const
             ).map(({ label, key }) => (
               <div key={key} className="section-card p-4 text-center">

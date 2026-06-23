@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
+import * as XLSX from "xlsx"
 import { db } from "@/lib/db"
 import { clients, projects, contractors, invoices, audit_logs } from "@/lib/db/schema"
 import { requireRole } from "@/lib/auth"
@@ -67,7 +68,7 @@ type ImportSummary = {
 
 const SYSTEM_PROMPT = `Eres un asistente especializado en migración de datos históricos para una firma de arquitectura y remodelación colombiana llamada Conceptos y Diseños.
 
-El usuario tiene archivos Excel convertidos a Markdown con MarkItDown. Estos archivos pueden tener estructuras muy distintas: tablas con columnas en diferentes órdenes, secciones con texto libre, múltiples hojas combinadas, etc.
+El usuario ha subido archivos Excel directamente. Cada hoja del Excel se presenta como una sección CSV con el encabezado "=== Hoja: [nombre] ===". Los datos pueden tener estructuras muy distintas: columnas en diferentes órdenes, varias hojas con distintos tipos de registros, valores en texto libre, etc.
 
 Tu tarea es analizar el contenido y extraer datos estructurados para importar a estas tablas de base de datos:
 
@@ -81,7 +82,7 @@ Reglas de conversión:
 - Montos en COP con puntos de miles: "1.500.000" → 1500000, "$2.300.000" → 2300000
 - Contratistas: maestro de obra, electricista, plomero, carpintero, pintor, etc. → specialty
 - Si un valor no está disponible o no es legible, usa null
-- No inventes datos — si no aparece claramente en el Markdown, omítelo
+- No inventes datos — si no aparece claramente en los datos, omítelo
 - Cualquier sección que no puedas clasificar con confianza, descríbela en unrecognized
 
 Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin explicaciones:
@@ -93,6 +94,19 @@ Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdo
   "unrecognized": ["descripción de datos que no pudiste clasificar"]
 }`
 
+function excelBufferToText(buffer: Buffer): string {
+  const workbook = XLSX.read(buffer, { type: "buffer" })
+  const sections: string[] = []
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName]
+    const csv = XLSX.utils.sheet_to_csv(sheet)
+    if (csv.trim()) {
+      sections.push(`=== Hoja: ${sheetName} ===\n${csv}`)
+    }
+  }
+  return sections.join("\n\n")
+}
+
 async function parseMarkdownWithClaude(content: string): Promise<z.infer<typeof claudeResponseSchema>> {
   const message = await client.messages.create({
     model: "claude-sonnet-4-6",
@@ -102,7 +116,7 @@ async function parseMarkdownWithClaude(content: string): Promise<z.infer<typeof 
     messages: [
       {
         role: "user",
-        content: `Analiza este archivo Markdown convertido desde Excel e importa los datos:\n\n${content}`,
+        content: `Analiza estos datos extraídos de un Excel e importa los registros:\n\n${content}`,
       },
     ],
   })
@@ -144,22 +158,26 @@ async function findOrCreateClient(
 }
 
 
+const MAX_IMPORT_FILES = 5
+
 export async function POST(req: NextRequest) {
   const user = await requireRole(["admin"])
 
-  let body: { files: Array<{ name: string; content: string }> }
+  let formData: FormData
   try {
-    body = await req.json()
+    formData = await req.formData()
   } catch {
-    return NextResponse.json({ success: false, error: "Request body inválido" }, { status: 400 })
+    return NextResponse.json({ success: false, error: "Request inválido" }, { status: 400 })
   }
 
-  if (!Array.isArray(body.files) || body.files.length === 0) {
+  const fileEntries = formData.getAll("files") as File[]
+
+  if (fileEntries.length === 0) {
     return NextResponse.json({ success: false, error: "Debes enviar al menos un archivo" }, { status: 400 })
   }
 
-  if (body.files.length > 10) {
-    return NextResponse.json({ success: false, error: "Máximo 10 archivos por importación" }, { status: 400 })
+  if (fileEntries.length > MAX_IMPORT_FILES) {
+    return NextResponse.json({ success: false, error: `Máximo ${MAX_IMPORT_FILES} archivos por importación` }, { status: 400 })
   }
 
   const summary: ImportSummary = {
@@ -171,9 +189,13 @@ export async function POST(req: NextRequest) {
     errors: [],
   }
 
-  // Parse all files with Claude
+  // Parse all Excel files with xlsx → text → Claude
   const allExtracted = await Promise.all(
-    body.files.map((f) => parseMarkdownWithClaude(f.content))
+    fileEntries.map(async (file) => {
+      const arrayBuffer = await file.arrayBuffer()
+      const text = excelBufferToText(Buffer.from(arrayBuffer))
+      return parseMarkdownWithClaude(text)
+    })
   )
 
   // Merge results across all files

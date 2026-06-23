@@ -11,7 +11,7 @@ export default async function ImportarPage() {
     <div>
       <Header
         title="Importar datos históricos"
-        subtitle="Carga tus archivos Excel convertidos a Markdown"
+        subtitle="Sube tus archivos Excel y la IA clasificará los datos automáticamente"
       />
 
       <div className="px-4 md:px-6 py-6 max-w-2xl">
