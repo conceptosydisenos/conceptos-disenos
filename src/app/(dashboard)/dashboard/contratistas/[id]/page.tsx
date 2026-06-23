@@ -35,7 +35,7 @@ function StatusBadge({ status }: { status: string }) {
     )
   }
   return (
-    <span className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+    <span className="flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
       <Clock className="w-3 h-3" /> Pendiente
     </span>
   )
@@ -170,9 +170,9 @@ export default async function ContratistaDetailPage({ params }: { params: { id: 
           <p className="text-xs text-green-700">Pagado</p>
           <p className="text-sm font-bold tabular-nums text-green-700">{COP.format(totalPaid)}</p>
         </div>
-        <div className={`rounded-xl border p-3 space-y-0.5 ${totalOwed > 0 ? "bg-amber-50 border-amber-200" : "bg-card"}`}>
-          <p className={`text-xs ${totalOwed > 0 ? "text-amber-700" : "text-muted-foreground"}`}>Por pagar</p>
-          <p className={`text-sm font-bold tabular-nums ${totalOwed > 0 ? "text-amber-700" : ""}`}>
+        <div className={`rounded-xl border p-3 space-y-0.5 ${totalOwed > 0 ? "bg-emerald-50 border-emerald-200" : "bg-card"}`}>
+          <p className={`text-xs ${totalOwed > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>Por pagar</p>
+          <p className={`text-sm font-bold tabular-nums ${totalOwed > 0 ? "text-emerald-700" : ""}`}>
             {COP.format(Math.max(0, totalOwed))}
           </p>
         </div>
@@ -225,8 +225,8 @@ export default async function ContratistaDetailPage({ params }: { params: { id: 
                   <p className="text-xs font-bold tabular-nums text-green-700">{COP.format(p.paid)}</p>
                 </div>
                 <div>
-                  <p className={`text-xs ${p.balance > 0 ? "text-amber-700" : "text-muted-foreground"}`}>Saldo</p>
-                  <p className={`text-xs font-bold tabular-nums ${p.balance > 0 ? "text-amber-700" : ""}`}>
+                  <p className={`text-xs ${p.balance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>Saldo</p>
+                  <p className={`text-xs font-bold tabular-nums ${p.balance > 0 ? "text-emerald-700" : ""}`}>
                     {COP.format(Math.max(0, p.balance))}
                   </p>
                 </div>

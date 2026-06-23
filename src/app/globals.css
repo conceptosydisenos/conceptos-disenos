@@ -5,8 +5,8 @@
 @layer base {
   :root {
     /* ── Brand Tokens ─────────────────────────────────────────
-       Primary:   Navy  #1e3a5f → hsl(214, 52%, 25%)
-       Accent:    Amber #f59e0b → hsl(38, 92%, 50%)
+       Primary:   Navy    #1e3a5f → hsl(214, 52%, 25%)
+       Accent:    Emerald #2D9B6F → hsl(156, 55%, 39%)
        Background: Slate-50 #f8fafc → hsl(210, 40%, 98%)
     ─────────────────────────────────────────────────────────── */
 
@@ -28,9 +28,9 @@
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
-    /* Accent = Amber — used for badges, alerts, CTAs */
-    --accent: 38 92% 50%;
-    --accent-foreground: 222 47% 11%;
+    /* Accent = Emerald — used for badges, active states, CTAs */
+    --accent: 156 55% 39%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;

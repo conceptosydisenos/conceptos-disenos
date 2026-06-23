@@ -167,11 +167,11 @@ export function ExtrasSection({ projectId, isAdmin, initialExtras }: ExtrasSecti
       {pendingExtras.length > 0 && (
         <div className="space-y-2">
           {pendingExtras.map((extra) => (
-            <div key={extra.id} className="section-card p-3 border-l-4 border-l-amber-400">
+            <div key={extra.id} className="section-card p-3 border-l-4 border-l-emerald-400">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
                       <Clock className="w-2.5 h-2.5 mr-1" />
                       Pendiente de confirmar
                     </Badge>
@@ -187,7 +187,7 @@ export function ExtrasSection({ projectId, isAdmin, initialExtras }: ExtrasSecti
                 <Button
                   size="sm"
                   variant="outline"
-                  className="mt-2 h-8 text-xs w-full border-amber-300 text-amber-700 hover:bg-amber-50"
+                  className="mt-2 h-8 text-xs w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50"
                   onClick={() => handleConfirm(extra.id)}
                   disabled={confirming === extra.id}
                 >

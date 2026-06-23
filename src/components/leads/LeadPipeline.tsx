@@ -8,7 +8,7 @@ export const PIPELINE_STAGES = [
   { key: "new",            label: "Nuevo",              color: "border-t-gray-400",   dot: "bg-gray-400"   },
   { key: "contacted",      label: "Contactado",         color: "border-t-blue-400",   dot: "bg-blue-400"   },
   { key: "visit_scheduled",label: "Visita agendada",    color: "border-t-violet-400", dot: "bg-violet-400" },
-  { key: "quoted",         label: "Cotización enviada", color: "border-t-amber-400",  dot: "bg-amber-400"  },
+  { key: "quoted",         label: "Cotización enviada", color: "border-t-emerald-400",  dot: "bg-emerald-400"  },
   { key: "won",            label: "Ganado",             color: "border-t-emerald-500",dot: "bg-emerald-500"},
   { key: "lost",           label: "Perdido",            color: "border-t-red-400",    dot: "bg-red-400"    },
 ] as const

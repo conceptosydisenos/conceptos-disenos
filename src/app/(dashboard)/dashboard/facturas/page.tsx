@@ -14,7 +14,7 @@ const STATUS_CONFIG = {
     label: "Sin asignar",
     variant: "outline" as const,
     icon: Clock,
-    color: "text-amber-600",
+    color: "text-emerald-700",
   },
   allocated: {
     label: "Asignada",
@@ -75,13 +75,13 @@ export default async function FacturasPage() {
 
       {/* Pending alert */}
       {pendingCount > 0 && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-px" />
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+          <AlertTriangle className="w-5 h-5 text-emerald-700 shrink-0 mt-px" />
           <div>
-            <p className="text-sm font-semibold text-amber-800">
+            <p className="text-sm font-semibold text-emerald-800">
               {pendingCount} factura{pendingCount !== 1 ? "s" : ""} sin asignar
             </p>
-            <p className="text-xs text-amber-700 mt-0.5">
+            <p className="text-xs text-emerald-700 mt-0.5">
               Asigna cada factura a un proyecto para registrar el costo correctamente.
             </p>
           </div>

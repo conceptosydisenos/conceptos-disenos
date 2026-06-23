@@ -45,29 +45,31 @@ function GoogleSignInButton() {
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 py-16">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 pt-20 pb-16">
       {/* Hidden SignIn — handles OAuth callback on /sign-in/sso-callback */}
       <div className="hidden" aria-hidden="true">
         <SignIn />
       </div>
 
       {/* Card */}
-      <div className="flex flex-col items-center gap-8 w-full max-w-xs">
+      <div className="flex flex-col items-center w-full max-w-xs">
         <Image
           src="/logo.jpg"
           alt="Conceptos y Diseños"
-          width={120}
-          height={60}
+          width={160}
+          height={80}
           className="object-contain"
           priority
         />
 
-        <div className="text-center space-y-1.5">
+        <div className="text-center space-y-1.5 mt-10">
           <h1 className="text-2xl font-bold text-gray-900">Bienvenido</h1>
           <p className="text-sm text-gray-500">Sistema Integral de Gestión de Obras</p>
         </div>
 
-        <GoogleSignInButton />
+        <div className="mt-8 w-full">
+          <GoogleSignInButton />
+        </div>
       </div>
 
       <footer className="mt-auto pt-12 text-center">

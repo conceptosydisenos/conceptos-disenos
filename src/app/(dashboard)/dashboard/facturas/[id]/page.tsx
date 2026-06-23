@@ -29,7 +29,7 @@ interface Props {
 }
 
 const STATUS_CONFIG = {
-  pending_allocation: { label: "Sin asignar", color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
+  pending_allocation: { label: "Sin asignar", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
   allocated: { label: "Asignada", color: "text-green-600", bg: "bg-green-50 border-green-200" },
   verified: { label: "Verificada", color: "text-primary", bg: "bg-primary/10 border-primary/20" },
 }

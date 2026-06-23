@@ -23,7 +23,7 @@ const COP = new Intl.NumberFormat("es-CO", {
 
 const STATUS_CONFIG = {
   draft: { label: "Borrador", Icon: Clock, badge: "outline" as const, color: "text-muted-foreground" },
-  submitted: { label: "Enviado", Icon: Send, badge: "secondary" as const, color: "text-amber-600" },
+  submitted: { label: "Enviado", Icon: Send, badge: "secondary" as const, color: "text-emerald-700" },
   approved: { label: "Aprobado", Icon: CheckCircle2, badge: "default" as const, color: "text-green-600" },
 }
 
@@ -98,11 +98,11 @@ export default async function CortesListPage({ params }: Props) {
 
       {/* Draft warning */}
       {hasDraft && (
-        <div className="flex items-start gap-2.5 p-3 rounded-xl border border-amber-200 bg-amber-50">
-          <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-px" />
+        <div className="flex items-start gap-2.5 p-3 rounded-xl border border-emerald-200 bg-emerald-50">
+          <Clock className="w-4 h-4 text-emerald-700 shrink-0 mt-px" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-amber-800">Hay un corte en borrador</p>
-            <p className="text-xs text-amber-700 mt-0.5">
+            <p className="text-sm font-medium text-emerald-800">Hay un corte en borrador</p>
+            <p className="text-xs text-emerald-700 mt-0.5">
               Completa o descarta el borrador antes de crear un nuevo corte.
             </p>
           </div>

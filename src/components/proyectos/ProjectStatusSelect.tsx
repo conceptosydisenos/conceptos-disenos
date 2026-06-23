@@ -20,7 +20,7 @@ const OPTIONS = [
 
 const COLOR_MAP: Record<string, string> = {
   active: "text-green-700",
-  paused: "text-amber-700",
+  paused: "text-emerald-700",
   completed: "text-blue-700",
   in_warranty: "text-purple-700",
   cancelled: "text-red-700",

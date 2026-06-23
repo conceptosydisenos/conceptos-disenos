@@ -15,7 +15,7 @@ import type { TooltipProps } from "recharts"
 
 const STATUS_COLORS = {
   green: "#22c55e",
-  amber: "#f59e0b",
+  amber: "#2D9B6F",
   red: "#ef4444",
 } as const
 
@@ -75,7 +75,7 @@ export function ProfitabilityBarChart({ data }: { data: ProjectBarData[] }) {
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f1f5f9" }} />
             <ReferenceLine y={15} stroke="#22c55e" strokeDasharray="4 2" strokeWidth={1.5} label={{ value: "15%", position: "right", fontSize: 9, fill: "#22c55e" }} />
-            <ReferenceLine y={5} stroke="#f59e0b" strokeDasharray="4 2" strokeWidth={1.5} label={{ value: "5%", position: "right", fontSize: 9, fill: "#f59e0b" }} />
+            <ReferenceLine y={5} stroke="#2D9B6F" strokeDasharray="4 2" strokeWidth={1.5} label={{ value: "5%", position: "right", fontSize: 9, fill: "#2D9B6F" }} />
             <Bar dataKey="marginPct" radius={[4, 4, 0, 0]} maxBarSize={52}>
               {data.map((entry, i) => (
                 <Cell key={i} fill={STATUS_COLORS[entry.marginStatus]} />

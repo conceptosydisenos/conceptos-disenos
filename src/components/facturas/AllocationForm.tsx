@@ -141,7 +141,7 @@ export function AllocationForm({ invoiceId, invoiceTotal, projects }: Allocation
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">{percentage.toFixed(1)}% asignado</span>
           {!isComplete && !isOver && (
-            <span className="text-xs text-amber-600 font-medium">
+            <span className="text-xs text-emerald-700 font-medium">
               Faltan {COP.format(Math.abs(remaining))}
             </span>
           )}

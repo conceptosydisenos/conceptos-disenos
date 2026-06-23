@@ -234,7 +234,7 @@ function KpiCard({
 }) {
   const colors = {
     blue: "bg-blue-50 text-blue-600",
-    amber: "bg-amber-50 text-amber-600",
+    amber: "bg-emerald-50 text-emerald-700",
     green: "bg-green-50 text-green-600",
     neutral: "bg-muted text-muted-foreground",
   }
@@ -256,7 +256,7 @@ function KpiCard({
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; className: string }> = {
     active: { label: "Activo", className: "bg-green-100 text-green-700 border-green-200" },
-    paused: { label: "Pausado", className: "bg-amber-100 text-amber-700 border-amber-200" },
+    paused: { label: "Pausado", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
     completed: { label: "Completado", className: "bg-blue-100 text-blue-700 border-blue-200" },
     cancelled: { label: "Cancelado", className: "bg-red-100 text-red-700 border-red-200" },
   }

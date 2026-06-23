@@ -237,13 +237,13 @@ export function ImportadorForm() {
 
           {/* Unrecognized */}
           {summary.unrecognized.length > 0 && (
-            <div className="section-card bg-amber-50 border-amber-200 space-y-1">
-              <p className="text-xs font-semibold text-amber-800">
+            <div className="section-card bg-emerald-50 border-emerald-200 space-y-1">
+              <p className="text-xs font-semibold text-emerald-800">
                 Datos no reconocidos ({summary.unrecognized.length})
               </p>
               <ul className="space-y-0.5">
                 {summary.unrecognized.map((item, i) => (
-                  <li key={i} className="text-xs text-amber-700">
+                  <li key={i} className="text-xs text-emerald-700">
                     · {item}
                   </li>
                 ))}

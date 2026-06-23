@@ -57,7 +57,7 @@ function shortName(name: string): string {
 
 function MarginIcon({ marginPct }: { marginPct: number }) {
   if (marginPct > 15) return <TrendingUp className="w-4 h-4 text-green-600" />
-  if (marginPct >= 5) return <Minus className="w-4 h-4 text-amber-500" />
+  if (marginPct >= 5) return <Minus className="w-4 h-4 text-emerald-500" />
   return <TrendingDown className="w-4 h-4 text-red-500" />
 }
 
@@ -68,8 +68,8 @@ const SEMAPHORE = {
     label: "Saludable",
   },
   amber: {
-    border: "border-l-amber-400",
-    badge: "bg-amber-100 text-amber-700",
+    border: "border-l-emerald-400",
+    badge: "bg-emerald-100 text-emerald-700",
     label: "Alerta",
   },
   red: {
@@ -290,7 +290,7 @@ export default async function RentabilidadPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Rentabilidad</h1>
+          <h1 className="text-xl font-bold text-foreground">Rentabilidad</h1>
           <p className="text-sm text-muted-foreground flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" /> {mesActual} · {activeProjects.length} proyectos activos
           </p>
@@ -298,7 +298,7 @@ export default async function RentabilidadPage() {
         <div className="flex items-center gap-1.5 text-xs">
           <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" />
           {counts.green}
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block ml-1" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block ml-1" />
           {counts.amber}
           <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block ml-1" />
           {counts.red}

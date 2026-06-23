@@ -109,7 +109,7 @@ export default async function ContratistasPage() {
     <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Contratistas</h1>
+          <h1 className="text-xl font-bold text-foreground">Contratistas</h1>
           <p className="text-sm text-muted-foreground">{enriched.length} registrados</p>
         </div>
         <Button asChild size="sm">
@@ -120,10 +120,10 @@ export default async function ContratistasPage() {
       </div>
 
       {pendingQuincenales.length > 0 && (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+        <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-            <p className="text-sm font-semibold text-amber-800">
+            <AlertCircle className="w-4 h-4 text-emerald-700 shrink-0" />
+            <p className="text-sm font-semibold text-emerald-800">
               Pagos pendientes esta quincena ({quinceRange.start.slice(8)} – {quinceRange.end.slice(8)})
             </p>
           </div>
@@ -132,13 +132,13 @@ export default async function ContratistasPage() {
               <li key={`${q.contractor_id}-${q.project_id}`}>
                 <Link
                   href={`/dashboard/contratistas/${q.contractor_id}/nuevo-pago`}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-amber-200 hover:border-amber-400 transition-colors"
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-emerald-200 hover:border-emerald-400 transition-colors"
                 >
                   <div>
                     <p className="text-sm font-medium">{q.contractor_name}</p>
                     <p className="text-xs text-muted-foreground">{q.project_name}</p>
                   </div>
-                  <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                     Registrar pago
                   </span>
                 </Link>
@@ -173,7 +173,7 @@ export default async function ContratistasPage() {
             <div className="text-right space-y-0.5">
               <p className="text-xs text-muted-foreground">{c.active_projects} proy. activos</p>
               {c.pending_amount > 0 && (
-                <div className="flex items-center gap-1 text-amber-600">
+                <div className="flex items-center gap-1 text-emerald-700">
                   <CreditCard className="w-3 h-3" />
                   <p className="text-xs font-semibold">{COP.format(c.pending_amount)}</p>
                 </div>

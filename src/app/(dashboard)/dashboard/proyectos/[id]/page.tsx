@@ -30,7 +30,7 @@ export const revalidate = 0
 
 const STATUS_MAP = {
   active: { label: "Activo", className: "bg-green-100 text-green-700 border-green-200" },
-  paused: { label: "En pausa", className: "bg-amber-100 text-amber-700 border-amber-200" },
+  paused: { label: "En pausa", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   completed: { label: "Terminado", className: "bg-blue-100 text-blue-700 border-blue-200" },
   in_warranty: { label: "En garantía", className: "bg-purple-100 text-purple-700 border-purple-200" },
   cancelled: { label: "Cancelado", className: "bg-red-100 text-red-700 border-red-200" },
@@ -237,7 +237,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
                 </span>
               </Link>
             </Button>
-            <Button asChild className="h-auto py-3 flex-col gap-1.5 col-span-2 bg-amber-500 hover:bg-amber-600 text-white">
+            <Button asChild className="h-auto py-3 flex-col gap-1.5 col-span-2 bg-emerald-500 hover:bg-emerald-700 text-white">
               <Link href={`/dashboard/proyectos/${project.id}/cortes/nuevo`}>
                 <Plus className="w-4 h-4" />
                 <span className="text-xs font-semibold">Registrar corte de obra</span>
@@ -293,7 +293,7 @@ function FinCard({
   const iconColors = {
     blue: "bg-blue-50 text-blue-600",
     green: "bg-green-50 text-green-600",
-    amber: "bg-amber-50 text-amber-600",
+    amber: "bg-emerald-50 text-emerald-700",
     red: "bg-red-50 text-red-600",
     neutral: "bg-muted text-muted-foreground",
   }

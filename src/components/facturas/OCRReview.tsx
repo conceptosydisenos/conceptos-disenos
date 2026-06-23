@@ -121,7 +121,7 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
       <div
         className={`flex items-start gap-2.5 p-3 rounded-lg border text-sm ${
           isLowConfidence
-            ? "bg-amber-50 border-amber-200 text-amber-800"
+            ? "bg-emerald-50 border-emerald-200 text-emerald-800"
             : "bg-green-50 border-green-200 text-green-800"
         }`}
       >
@@ -281,10 +281,10 @@ export function OCRReview({ imageUrl, ocrData }: OCRReviewProps) {
         </div>
 
         {showProjectError && (
-          <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4 space-y-3">
+          <div className="rounded-xl border-2 border-emerald-400 bg-emerald-50 p-4 space-y-3">
             <div className="flex items-start gap-2.5">
-              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-sm font-semibold text-amber-900">
+              <AlertTriangle className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+              <p className="text-sm font-semibold text-emerald-900">
                 Para guardar esta factura debes asignarla a una obra. ¿A cuál proyecto pertenece?
               </p>
             </div>

@@ -97,7 +97,7 @@ export function Sidebar({ role, userName }: SidebarProps) {
               )}
             >
               <Icon
-                className={cn("w-4 h-4 shrink-0", active ? "text-amber-400" : "text-white/40")}
+                className={cn("w-4 h-4 shrink-0", active ? "text-emerald-400" : "text-white/40")}
               />
               {label}
             </Link>
@@ -123,7 +123,7 @@ export function Sidebar({ role, userName }: SidebarProps) {
               <Activity
                 className={cn(
                   "w-4 h-4 shrink-0",
-                  isActive("/dashboard/seguimiento") ? "text-amber-400" : "text-white/40"
+                  isActive("/dashboard/seguimiento") ? "text-emerald-400" : "text-white/40"
                 )}
               />
               Seguimiento
@@ -150,7 +150,7 @@ export function Sidebar({ role, userName }: SidebarProps) {
                   <Icon
                     className={cn(
                       "w-4 h-4 shrink-0",
-                      active ? "text-amber-400" : "text-white/40"
+                      active ? "text-emerald-400" : "text-white/40"
                     )}
                   />
                   {label}

@@ -57,7 +57,7 @@ const STAGE_COLORS: Record<string, string> = {
   new:             "bg-slate-100 text-slate-700",
   contacted:       "bg-blue-50 text-blue-700",
   visit_scheduled: "bg-purple-50 text-purple-700",
-  quoted:          "bg-amber-50 text-amber-700",
+  quoted:          "bg-emerald-50 text-emerald-700",
   won:             "bg-green-50 text-green-700",
   lost:            "bg-red-50 text-red-600",
 }
@@ -156,7 +156,7 @@ export default function SeguimientoPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-mono text-muted-foreground">{q.quote_number}</span>
-                    <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">
+                    <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-medium">
                       {q.days_waiting}d sin respuesta
                     </span>
                   </div>

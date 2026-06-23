@@ -8,7 +8,7 @@ const STAGES = [
   { key: "new",             label: "Nuevo",              color: "text-gray-600   bg-gray-100   hover:bg-gray-200"   },
   { key: "contacted",       label: "Contactado",         color: "text-blue-700   bg-blue-100   hover:bg-blue-200"   },
   { key: "visit_scheduled", label: "Visita",             color: "text-violet-700 bg-violet-100 hover:bg-violet-200" },
-  { key: "quoted",          label: "Cotización",         color: "text-amber-700  bg-amber-100  hover:bg-amber-200"  },
+  { key: "quoted",          label: "Cotización",         color: "text-emerald-700  bg-emerald-100  hover:bg-emerald-200"  },
   { key: "won",             label: "Ganado",             color: "text-emerald-700 bg-emerald-100 hover:bg-emerald-200" },
   { key: "lost",            label: "Perdido",            color: "text-red-700    bg-red-100    hover:bg-red-200"    },
 ] as const

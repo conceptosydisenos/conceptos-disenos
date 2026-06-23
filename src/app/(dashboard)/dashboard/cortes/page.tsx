@@ -18,7 +18,7 @@ const STATUS_CONFIG = {
   },
   submitted: {
     label: "Enviado",
-    className: "bg-amber-100 text-amber-700 border-amber-200",
+    className: "bg-emerald-100 text-emerald-700 border-emerald-200",
   },
   approved: {
     label: "Aprobado",

@@ -27,7 +27,7 @@ const COP = new Intl.NumberFormat("es-CO", {
 
 const STATUS_CONFIG = {
   draft: { label: "Borrador", Icon: Clock, color: "text-muted-foreground", bg: "bg-muted/30 border-border" },
-  submitted: { label: "Enviado al cliente", Icon: Send, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
+  submitted: { label: "Enviado al cliente", Icon: Send, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
   approved: { label: "Aprobado", Icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50 border-green-200" },
 }
 

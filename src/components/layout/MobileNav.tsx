@@ -43,7 +43,7 @@ export function MobileNav({ role }: MobileNavProps) {
               className="flex flex-col items-center justify-end gap-1 flex-1 pb-2 pt-1"
             >
               {primary ? (
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-amber-500 shadow-lg -mt-5">
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500 shadow-lg -mt-5">
                   <Icon className="w-5 h-5 text-white" />
                 </div>
               ) : (
@@ -58,7 +58,7 @@ export function MobileNav({ role }: MobileNavProps) {
                 className={cn(
                   "text-[10px] font-medium leading-none",
                   primary
-                    ? "text-amber-500"
+                    ? "text-emerald-500"
                     : active
                     ? "text-[hsl(var(--primary))]"
                     : "text-muted-foreground"
