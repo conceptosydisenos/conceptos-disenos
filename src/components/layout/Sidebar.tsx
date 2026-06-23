@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
@@ -10,7 +11,6 @@ import {
   HardHat,
   Users,
   BarChart3,
-  Building2,
   LogOut,
   TrendingUp,
   FileUp,
@@ -18,24 +18,24 @@ import {
   FileText,
   Activity,
 } from "lucide-react"
-import { useClerk } from "@clerk/nextjs"
+import { useClerk, useUser } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Resumen", exact: true },
-  { href: "/dashboard/leads", icon: UserRoundSearch, label: "Leads" },
-  { href: "/dashboard/cotizaciones", icon: FileText, label: "Cotizaciones" },
-  { href: "/dashboard/proyectos", icon: FolderOpen, label: "Proyectos" },
-  { href: "/dashboard/facturas", icon: Receipt, label: "Facturas" },
-  { href: "/dashboard/cortes", icon: Scissors, label: "Cortes de obra" },
-  { href: "/dashboard/contratistas", icon: HardHat, label: "Contratistas" },
+  { href: "/dashboard",              icon: LayoutDashboard, label: "Resumen",       exact: true },
+  { href: "/dashboard/leads",        icon: UserRoundSearch, label: "Leads" },
+  { href: "/dashboard/cotizaciones", icon: FileText,        label: "Cotizaciones" },
+  { href: "/dashboard/proyectos",    icon: FolderOpen,      label: "Proyectos" },
+  { href: "/dashboard/facturas",     icon: Receipt,         label: "Facturas" },
+  { href: "/dashboard/cortes",       icon: Scissors,        label: "Cortes de obra" },
+  { href: "/dashboard/contratistas", icon: HardHat,         label: "Contratistas" },
 ]
 
 const adminItems = [
   { href: "/dashboard/rentabilidad", icon: TrendingUp, label: "Rentabilidad" },
-  { href: "/dashboard/clientes", icon: Users, label: "Clientes" },
-  { href: "/dashboard/reportes", icon: BarChart3, label: "Reportes" },
-  { href: "/dashboard/importar", icon: FileUp, label: "Importar datos" },
+  { href: "/dashboard/clientes",     icon: Users,      label: "Clientes" },
+  { href: "/dashboard/reportes",     icon: BarChart3,  label: "Reportes" },
+  { href: "/dashboard/importar",     icon: FileUp,     label: "Importar datos" },
 ]
 
 interface SidebarProps {
@@ -46,6 +46,7 @@ interface SidebarProps {
 export function Sidebar({ role, userName }: SidebarProps) {
   const pathname = usePathname()
   const { signOut } = useClerk()
+  const { user: clerkUser } = useUser()
 
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/")
@@ -64,8 +65,14 @@ export function Sidebar({ role, userName }: SidebarProps) {
     <aside className="hidden md:flex flex-col w-[240px] min-h-screen bg-[hsl(var(--sidebar-bg))] shrink-0">
       {/* Brand */}
       <div className="flex items-center gap-3 px-5 h-14 border-b border-white/10">
-        <div className="flex items-center justify-center w-7 h-7 rounded-md bg-amber-500 shrink-0">
-          <Building2 className="w-4 h-4 text-white" />
+        <div className="w-9 h-9 rounded-lg bg-white shrink-0 overflow-hidden flex items-center justify-center">
+          <Image
+            src="/logo.jpg"
+            alt="Conceptos y Diseños"
+            width={36}
+            height={36}
+            className="object-contain"
+          />
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-white leading-tight truncate">
@@ -157,9 +164,19 @@ export function Sidebar({ role, userName }: SidebarProps) {
       {/* User profile */}
       <div className="px-3 py-3 border-t border-white/10">
         <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 text-xs font-bold text-white shrink-0">
-            {initials}
-          </div>
+          {clerkUser?.imageUrl ? (
+            <Image
+              src={clerkUser.imageUrl}
+              alt={userName}
+              width={32}
+              height={32}
+              className="rounded-full object-cover ring-1 ring-white/30 shrink-0"
+            />
+          ) : (
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15 ring-1 ring-white/30 text-xs font-bold text-white shrink-0">
+              {initials}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-white truncate">{userName}</p>
             <p className="text-xs text-white/45">{roleLabel}</p>
