@@ -16,6 +16,7 @@ import {
   FileUp,
   UserRoundSearch,
   FileText,
+  Activity,
 } from "lucide-react"
 import { useClerk } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
@@ -98,6 +99,29 @@ export function Sidebar({ role, userName }: SidebarProps) {
 
         {role === "admin" && (
           <>
+            <div className="pt-5 pb-2 px-3">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                Comercial
+              </p>
+            </div>
+            <Link
+              href="/dashboard/seguimiento"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                isActive("/dashboard/seguimiento")
+                  ? "bg-white/15 text-white"
+                  : "text-white/60 hover:text-white hover:bg-white/8"
+              )}
+            >
+              <Activity
+                className={cn(
+                  "w-4 h-4 shrink-0",
+                  isActive("/dashboard/seguimiento") ? "text-amber-400" : "text-white/40"
+                )}
+              />
+              Seguimiento
+            </Link>
+
             <div className="pt-5 pb-2 px-3">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
                 Administración

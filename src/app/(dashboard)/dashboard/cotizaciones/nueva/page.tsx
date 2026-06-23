@@ -24,11 +24,11 @@ export default async function NuevaCotizacionPage({ searchParams }: Props) {
   if (searchParams.lead_id) {
     const [lead] = await db
       .select({
-        id:           leads.id,
-        contact_name: leads.contact_name,
-        contact_phone:leads.contact_phone,
-        contact_email:leads.contact_email,
-        project_address: leads.project_address,
+        id:                  leads.id,
+        contact_name:        leads.contact_name,
+        contact_phone:       leads.contact_phone,
+        contact_email:       leads.contact_email,
+        project_description: leads.project_description,
       })
       .from(leads)
       .where(eq(leads.id, searchParams.lead_id))
@@ -39,7 +39,7 @@ export default async function NuevaCotizacionPage({ searchParams }: Props) {
         contact_name: lead.contact_name,
         contact_phone:lead.contact_phone,
         contact_email:lead.contact_email ?? undefined,
-        project_name: lead.project_address ?? "",
+        project_name: lead.project_description ?? "",
       }
     }
   }
