@@ -54,10 +54,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ success: false, error: "Datos inválidos" }, { status: 400 })
     }
 
+    const leadFilter = user.role === "admin"
+      ? and(eq(leads.id, params.id), isNull(leads.deleted_at))
+      : and(eq(leads.id, params.id), eq(leads.assigned_to, user.id), isNull(leads.deleted_at))
+
     const [existing] = await db
       .select({ id: leads.id, status: leads.status })
       .from(leads)
-      .where(and(eq(leads.id, params.id), isNull(leads.deleted_at)))
+      .where(leadFilter)
 
     if (!existing) {
       return NextResponse.json({ success: false, error: "Lead no encontrado" }, { status: 404 })
@@ -85,7 +89,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const [updated] = await db
       .update(leads)
       .set(updatePayload)
-      .where(eq(leads.id, params.id))
+      .where(leadFilter)
       .returning()
 
     // Log status change activity automatically

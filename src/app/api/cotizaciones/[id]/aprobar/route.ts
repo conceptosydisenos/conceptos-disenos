@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { quotes } from "@/lib/db/schema"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { and, eq, isNull } from "drizzle-orm"
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   try {
-    await requireAuth()
+    await requireRole(["admin"])
 
     const [quote] = await db
       .select({ id: quotes.id, status: quotes.status })

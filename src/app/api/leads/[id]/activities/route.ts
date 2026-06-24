@@ -22,10 +22,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ success: false, error: "Datos inválidos" }, { status: 400 })
     }
 
+    const leadFilter = user.role === "admin"
+      ? and(eq(leads.id, params.id), isNull(leads.deleted_at))
+      : and(eq(leads.id, params.id), eq(leads.assigned_to, user.id), isNull(leads.deleted_at))
+
     const [lead] = await db
       .select({ id: leads.id })
       .from(leads)
-      .where(and(eq(leads.id, params.id), isNull(leads.deleted_at)))
+      .where(leadFilter)
 
     if (!lead) {
       return NextResponse.json({ success: false, error: "Lead no encontrado" }, { status: 404 })

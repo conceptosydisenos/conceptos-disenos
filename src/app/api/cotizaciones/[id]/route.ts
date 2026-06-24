@@ -46,7 +46,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
-    await requireAuth()
+    const user = await requireAuth()
 
     const body: unknown = await req.json()
     const parsed = patchSchema.safeParse(body)
@@ -54,10 +54,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ success: false, error: "Datos inválidos" }, { status: 400 })
     }
 
+    const ownerFilter = user.role === "admin"
+      ? and(eq(quotes.id, params.id), isNull(quotes.deleted_at))
+      : and(eq(quotes.id, params.id), eq(quotes.created_by, user.id), isNull(quotes.deleted_at))
+
     const [existing] = await db
       .select()
       .from(quotes)
-      .where(and(eq(quotes.id, params.id), isNull(quotes.deleted_at)))
+      .where(ownerFilter)
 
     if (!existing) {
       return NextResponse.json({ success: false, error: "Cotización no encontrada" }, { status: 404 })

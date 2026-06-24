@@ -10,12 +10,16 @@ export async function DELETE(
   { params }: { params: { id: string; itemId: string } }
 ) {
   try {
-    await requireAuth()
+    const user = await requireAuth()
+
+    const ownerFilter = user.role === "admin"
+      ? and(eq(quotes.id, params.id), isNull(quotes.deleted_at))
+      : and(eq(quotes.id, params.id), eq(quotes.created_by, user.id), isNull(quotes.deleted_at))
 
     const [quote] = await db
       .select()
       .from(quotes)
-      .where(and(eq(quotes.id, params.id), isNull(quotes.deleted_at)))
+      .where(ownerFilter)
 
     if (!quote) return NextResponse.json({ success: false, error: "Cotización no encontrada" }, { status: 404 })
     if (quote.status !== "draft") return NextResponse.json({ success: false, error: "Solo se pueden editar cotizaciones en borrador" }, { status: 409 })

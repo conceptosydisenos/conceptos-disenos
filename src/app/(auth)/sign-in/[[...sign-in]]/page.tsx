@@ -45,7 +45,7 @@ function GoogleSignInButton() {
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 pt-20 pb-16">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-0 px-6">
       {/* Hidden SignIn — handles OAuth callback on /sign-in/sso-callback */}
       <div className="hidden" aria-hidden="true">
         <SignIn />
@@ -56,23 +56,23 @@ export default function SignInPage() {
         <Image
           src="/logo.jpg"
           alt="Conceptos y Diseños"
-          width={160}
-          height={80}
+          width={280}
+          height={140}
           className="object-contain"
           priority
         />
 
-        <div className="text-center space-y-1.5 mt-10">
+        <div className="mt-16 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Bienvenido</h1>
-          <p className="text-sm text-gray-500">Sistema Integral de Gestión de Obras</p>
+          <p className="mt-4 text-sm text-gray-500">Sistema Integral de Gestión de Obras</p>
         </div>
 
-        <div className="mt-8 w-full">
+        <div className="mt-12 w-full">
           <GoogleSignInButton />
         </div>
       </div>
 
-      <footer className="mt-auto pt-12 text-center">
+      <footer className="fixed bottom-8 w-full text-center">
         <p className="text-xs text-gray-400">
           © 2026 Conceptos y Diseños · Medellín, Colombia
         </p>
