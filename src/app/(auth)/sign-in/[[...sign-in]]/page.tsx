@@ -52,22 +52,24 @@ export default function SignInPage() {
       </div>
 
       {/* Card */}
-      <div className="flex flex-col items-center w-full max-w-xs">
-        <Image
-          src="/logo.jpg"
-          alt="Conceptos y Diseños"
-          width={280}
-          height={140}
-          className="object-contain"
-          priority
-        />
-
-        <div className="mt-16 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Bienvenido</h1>
-          <p className="mt-4 text-sm text-gray-500">Sistema Integral de Gestión de Obras</p>
+      <div className="flex flex-col items-center w-full">
+        <div className="mb-2 w-[90vw] sm:w-[520px]">
+          <Image
+            src="/logo.jpg"
+            alt="Conceptos y Diseños"
+            width={520}
+            height={260}
+            className="object-contain w-full h-auto"
+            priority
+          />
         </div>
 
-        <div className="mt-12 w-full">
+        <div className="mt-16 text-center">
+          <h1 className="text-2xl font-semibold text-gray-900">Bienvenido</h1>
+          <p className="mt-1 text-sm text-gray-400">Sistema Integral de Gestión de Obras</p>
+        </div>
+
+        <div className="mt-10 w-[90vw] sm:w-full max-w-[400px]">
           <GoogleSignInButton />
         </div>
       </div>
