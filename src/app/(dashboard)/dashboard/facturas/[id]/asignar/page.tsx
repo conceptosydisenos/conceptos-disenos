@@ -1,7 +1,7 @@
 import { db } from "@/lib/db"
-import { invoices, projects } from "@/lib/db/schema"
+import { invoices, projects, project_rubros } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { eq, inArray } from "drizzle-orm"
+import { and, eq, inArray, ne } from "drizzle-orm"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
@@ -46,6 +46,38 @@ export default async function AsignarPage({ params }: Props) {
       inArray(projects.status, ["active", "paused", "in_warranty"])
     )
     .orderBy(projects.name)
+
+  // Fetch active rubros for all projects, excluding mano_obra
+  // (labor costs are tracked separately, not via supplier invoices)
+  const projectIds = activeProjects.map((p) => p.id)
+  const rubrosRows =
+    projectIds.length > 0
+      ? await db
+          .select({
+            id:         project_rubros.id,
+            project_id: project_rubros.project_id,
+            rubro_type: project_rubros.rubro_type,
+            name:       project_rubros.name,
+            sort_order: project_rubros.sort_order,
+          })
+          .from(project_rubros)
+          .where(
+            and(
+              inArray(project_rubros.project_id, projectIds),
+              eq(project_rubros.active, true),
+              ne(project_rubros.rubro_type, "mano_obra")
+            )
+          )
+          .orderBy(project_rubros.sort_order)
+      : []
+
+  const rubrosByProject = rubrosRows.reduce<
+    Record<string, { id: string; rubro_type: string; name: string }[]>
+  >((acc, r) => {
+    if (!acc[r.project_id]) acc[r.project_id] = []
+    acc[r.project_id].push({ id: r.id, rubro_type: r.rubro_type, name: r.name })
+    return acc
+  }, {})
 
   const total = parseFloat(invoice.total_amount)
 
@@ -92,6 +124,7 @@ export default async function AsignarPage({ params }: Props) {
           invoiceId={invoice.id}
           invoiceTotal={total}
           projects={activeProjects}
+          rubrosByProject={rubrosByProject}
         />
       )}
     </div>

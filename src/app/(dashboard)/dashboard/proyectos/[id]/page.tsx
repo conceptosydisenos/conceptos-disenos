@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation"
 import { db } from "@/lib/db"
-import { projects, clients, advances, invoice_allocations, work_cuts, project_extras, budget_items } from "@/lib/db/schema"
+import { projects, clients, advances, invoice_allocations, work_cuts, project_extras, budget_items, project_rubros } from "@/lib/db/schema"
 import { getCurrentUser } from "@/lib/auth"
 import { Header } from "@/components/layout/Header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { eq, sql, desc } from "drizzle-orm"
+import { eq, sql, desc, and } from "drizzle-orm"
 import { formatCOP } from "@/lib/utils"
 import { calculateProjectMargin } from "@/lib/calculations"
 import {
@@ -25,6 +25,7 @@ import {
 import { ProjectStatusSelect } from "@/components/proyectos/ProjectStatusSelect"
 import { ExtrasSection } from "@/components/proyectos/ExtrasSection"
 import { BudgetSection } from "@/components/proyectos/BudgetSection"
+import { RubrosSection } from "@/components/proyectos/RubrosSection"
 
 export const revalidate = 0
 
@@ -66,7 +67,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
 
   if (!project) notFound()
 
-  const [advancesResult, invoiceCostResult, cutsResult, extrasRows, budgetRows] = await Promise.all([
+  const [advancesResult, invoiceCostResult, cutsResult, extrasRows, budgetRows, rubrosRows] = await Promise.all([
     db
       .select({ total: sql<string>`coalesce(sum(amount)::numeric, 0)` })
       .from(advances)
@@ -102,6 +103,35 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       .from(budget_items)
       .where(eq(budget_items.project_id, params.id))
       .orderBy(budget_items.category, budget_items.name),
+
+    db
+      .select({
+        id:            project_rubros.id,
+        rubro_type:    project_rubros.rubro_type,
+        name:          project_rubros.name,
+        budget_amount: project_rubros.budget_amount,
+        sort_order:    project_rubros.sort_order,
+        spent: sql<string>`coalesce(sum(${invoice_allocations.amount})::numeric, '0')`,
+      })
+      .from(project_rubros)
+      .leftJoin(
+        invoice_allocations,
+        eq(invoice_allocations.project_rubro_id, project_rubros.id)
+      )
+      .where(
+        and(
+          eq(project_rubros.project_id, params.id),
+          eq(project_rubros.active, true)
+        )
+      )
+      .groupBy(
+        project_rubros.id,
+        project_rubros.rubro_type,
+        project_rubros.name,
+        project_rubros.budget_amount,
+        project_rubros.sort_order
+      )
+      .orderBy(project_rubros.sort_order),
   ])
 
   const quoted = parseFloat(project.quoted_amount)
@@ -245,6 +275,16 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
             </Button>
           </div>
         </div>
+
+        {/* Presupuesto por rubros */}
+        {rubrosRows.length > 0 && (
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Presupuesto por rubros
+            </h3>
+            <RubrosSection rubros={rubrosRows} />
+          </div>
+        )}
 
         {/* Presupuesto de actividades */}
         <BudgetSection

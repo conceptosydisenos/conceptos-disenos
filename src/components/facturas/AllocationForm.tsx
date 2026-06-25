@@ -16,18 +16,26 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react"
 import type { Project } from "@/types"
 
+interface ProjectRubro {
+  id: string
+  rubro_type: string
+  name: string
+}
+
 interface AllocationRow {
   id: string
   project_id: string
   amount: string
   percentage: string
   category: "materiales" | "equipos" | "otro"
+  project_rubro_id: string | null
 }
 
 interface AllocationFormProps {
   invoiceId: string
   invoiceTotal: number
   projects: Pick<Project, "id" | "name" | "status">[]
+  rubrosByProject?: Record<string, ProjectRubro[]>
 }
 
 function newRow(): AllocationRow {
@@ -37,6 +45,7 @@ function newRow(): AllocationRow {
     amount: "",
     percentage: "",
     category: "materiales",
+    project_rubro_id: null,
   }
 }
 
@@ -46,7 +55,12 @@ const COP = new Intl.NumberFormat("es-CO", {
   minimumFractionDigits: 0,
 })
 
-export function AllocationForm({ invoiceId, invoiceTotal, projects }: AllocationFormProps) {
+export function AllocationForm({
+  invoiceId,
+  invoiceTotal,
+  projects,
+  rubrosByProject = {},
+}: AllocationFormProps) {
   const router = useRouter()
   const [rows, setRows] = useState<AllocationRow[]>([newRow()])
   const [submitting, setSubmitting] = useState(false)
@@ -96,14 +110,25 @@ export function AllocationForm({ invoiceId, invoiceTotal, projects }: Allocation
     const invalid = rows.find((r) => !r.project_id || !parseFloat(r.amount))
     if (invalid) { setError("Todos los campos son requeridos"); return }
 
+    // Check that rows with available rubros have a rubro selected
+    const missingRubro = rows.find((r) => {
+      const rubros = rubrosByProject[r.project_id] ?? []
+      return rubros.length > 0 && !r.project_rubro_id
+    })
+    if (missingRubro) {
+      setError("Selecciona el rubro para cada proyecto")
+      return
+    }
+
     setSubmitting(true)
     setError(null)
 
     const allocations = rows.map((r) => ({
-      project_id: r.project_id,
-      amount: parseFloat(r.amount),
-      percentage: parseFloat(r.percentage),
-      category: r.category,
+      project_id:       r.project_id,
+      amount:           parseFloat(r.amount),
+      percentage:       parseFloat(r.percentage),
+      category:         r.category,
+      project_rubro_id: r.project_rubro_id ?? null,
     }))
 
     try {
@@ -162,125 +187,165 @@ export function AllocationForm({ invoiceId, invoiceTotal, projects }: Allocation
 
       {/* Allocation rows */}
       <div className="space-y-3">
-        {rows.map((row, index) => (
-          <div key={row.id} className="rounded-xl border bg-card p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Asignación {index + 1}
-              </span>
-              {rows.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setRows((prev) => prev.filter((r) => r.id !== row.id))}
-                  className="text-muted-foreground hover:text-destructive transition-colors p-1 -m-1"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+        {rows.map((row, index) => {
+          const projectRubros = row.project_id ? (rubrosByProject[row.project_id] ?? []) : []
 
-            {/* Project selector */}
-            <div className="space-y-1.5">
-              <Label className="text-xs">Proyecto *</Label>
-              <Select
-                value={row.project_id}
-                onValueChange={(val) =>
-                  setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, project_id: val } : r)))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar proyecto..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      <span className="flex items-center gap-2">
-                        {p.name}
-                        {p.status !== "active" && (
-                          <Badge variant="outline" className="text-[10px] px-1 py-0">
-                            {p.status}
-                          </Badge>
-                        )}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Amount + percentage bidirectional */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Monto (COP) *</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={1000}
-                    placeholder="0"
-                    value={row.amount}
-                    onChange={(e) => updateAmount(row.id, e.target.value)}
-                    className="pl-7 tabular-nums"
-                  />
-                </div>
+          return (
+            <div key={row.id} className="rounded-xl border bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Asignación {index + 1}
+                </span>
+                {rows.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setRows((prev) => prev.filter((r) => r.id !== row.id))}
+                    className="text-muted-foreground hover:text-destructive transition-colors p-1 -m-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Porcentaje</Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.01}
-                    placeholder="0"
-                    value={row.percentage}
-                    onChange={(e) => updatePercentage(row.id, e.target.value)}
-                    className="pr-7 tabular-nums"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Categoría + fill remaining */}
-            <div className="flex items-end gap-3">
-              <div className="space-y-1.5 flex-1">
-                <Label className="text-xs">Categoría</Label>
+              {/* Project selector */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Proyecto *</Label>
                 <Select
-                  value={row.category}
+                  value={row.project_id}
                   onValueChange={(val) =>
                     setRows((prev) =>
                       prev.map((r) =>
-                        r.id === row.id ? { ...r, category: val as AllocationRow["category"] } : r
+                        r.id === row.id
+                          ? { ...r, project_id: val, project_rubro_id: null }
+                          : r
                       )
                     )
                   }
                 >
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar proyecto..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="materiales">Materiales</SelectItem>
-                    <SelectItem value="equipos">Equipos</SelectItem>
-                    <SelectItem value="otro">Otro</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        <span className="flex items-center gap-2">
+                          {p.name}
+                          {p.status !== "active" && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0">
+                              {p.status}
+                            </Badge>
+                          )}
+                        </span>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-              {rows.length > 1 && !isComplete && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-9 text-xs shrink-0"
-                  onClick={() => fillRemaining(row.id)}
-                >
-                  Llenar resto
-                </Button>
+
+              {/* Rubro selector — only shown when project has rubros */}
+              {projectRubros.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Rubro *</Label>
+                  <Select
+                    value={row.project_rubro_id ?? ""}
+                    onValueChange={(val) =>
+                      setRows((prev) =>
+                        prev.map((r) =>
+                          r.id === row.id ? { ...r, project_rubro_id: val } : r
+                        )
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar rubro..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projectRubros.map((rubro) => (
+                        <SelectItem key={rubro.id} value={rubro.id}>
+                          {rubro.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
+
+              {/* Amount + percentage bidirectional */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Monto (COP) *</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={1000}
+                      placeholder="0"
+                      value={row.amount}
+                      onChange={(e) => updateAmount(row.id, e.target.value)}
+                      className="pl-7 tabular-nums"
+                      inputMode="numeric"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Porcentaje</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      placeholder="0"
+                      value={row.percentage}
+                      onChange={(e) => updatePercentage(row.id, e.target.value)}
+                      className="pr-7 tabular-nums"
+                      inputMode="decimal"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Categoría + fill remaining */}
+              <div className="flex items-end gap-3">
+                <div className="space-y-1.5 flex-1">
+                  <Label className="text-xs">Categoría</Label>
+                  <Select
+                    value={row.category}
+                    onValueChange={(val) =>
+                      setRows((prev) =>
+                        prev.map((r) =>
+                          r.id === row.id ? { ...r, category: val as AllocationRow["category"] } : r
+                        )
+                      )
+                    }
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="materiales">Materiales</SelectItem>
+                      <SelectItem value="equipos">Equipos</SelectItem>
+                      <SelectItem value="otro">Otro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {rows.length > 1 && !isComplete && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 text-xs shrink-0"
+                    onClick={() => fillRemaining(row.id)}
+                  >
+                    Llenar resto
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Add row */}

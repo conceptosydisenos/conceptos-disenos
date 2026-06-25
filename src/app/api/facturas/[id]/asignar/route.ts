@@ -10,11 +10,12 @@ const allocationSchema = z.object({
   allocations: z
     .array(
       z.object({
-        project_id: z.string().uuid("ID de proyecto inválido"),
-        amount: z.coerce.number().positive("El monto debe ser mayor a 0"),
-        percentage: z.coerce.number().min(0).max(100),
-        category: z.enum(["materiales", "equipos", "otro"]).default("materiales"),
-        notes: z.string().optional(),
+        project_id:       z.string().uuid("ID de proyecto inválido"),
+        amount:           z.coerce.number().positive("El monto debe ser mayor a 0"),
+        percentage:       z.coerce.number().min(0).max(100),
+        category:         z.enum(["materiales", "equipos", "otro"]).default("materiales"),
+        notes:            z.string().optional(),
+        project_rubro_id: z.string().uuid().nullable().optional(),
       })
     )
     .min(1, "Debes asignar al menos un proyecto"),
@@ -83,12 +84,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     // 4. Safe to insert allocations — we won the race above
     await db.insert(invoice_allocations).values(
       allocations.map((a) => ({
-        invoice_id: params.id,
-        project_id: a.project_id,
-        amount: String(a.amount),
-        percentage: String(a.percentage),
-        category: a.category,
-        notes: a.notes || null,
+        invoice_id:       params.id,
+        project_id:       a.project_id,
+        amount:           String(a.amount),
+        percentage:       String(a.percentage),
+        category:         a.category,
+        notes:            a.notes || null,
+        project_rubro_id: a.project_rubro_id ?? null,
       }))
     )
 

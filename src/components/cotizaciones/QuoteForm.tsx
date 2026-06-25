@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { QuoteRubrosEditor, type RubroRow } from "@/components/cotizaciones/QuoteRubrosEditor"
 
 interface InitialValues {
   project_name?: string
@@ -29,6 +30,7 @@ export function QuoteForm({ initialValues }: Props) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [rubros, setRubros] = useState<RubroRow[]>([])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -52,6 +54,7 @@ export function QuoteForm({ initialValues }: Props) {
     }
 
     try {
+      // 1. Create the quote (and default rubros via seedQuoteRubros)
       const res = await fetch("/api/cotizaciones", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,13 +62,25 @@ export function QuoteForm({ initialValues }: Props) {
       })
       const json = await res.json() as { success: boolean; error?: string; data?: { id: string } }
 
-      if (!json.success) {
+      if (!json.success || !json.data) {
         setError(json.error ?? "Error al guardar")
         setSaving(false)
         return
       }
 
-      router.push(`/dashboard/cotizaciones/${json.data!.id}`)
+      const quoteId = json.data.id
+
+      // 2. Patch rubros with user-entered amounts (if any rubros were touched)
+      if (rubros.length > 0) {
+        await fetch(`/api/cotizaciones/${quoteId}/rubros`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rubros }),
+        })
+        // Non-blocking: rubros are non-critical for the redirect to succeed
+      }
+
+      router.push(`/dashboard/cotizaciones/${quoteId}`)
       router.refresh()
     } catch {
       setError("Error de conexión")
@@ -204,6 +219,19 @@ export function QuoteForm({ initialValues }: Props) {
             />
           </div>
         </div>
+      </div>
+
+      {/* Rubros y presupuesto */}
+      <div className="space-y-3 pt-2 border-t border-border">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Rubros y presupuesto
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Activa los rubros que aplican y asigna el presupuesto estimado para cada uno.
+          </p>
+        </div>
+        <QuoteRubrosEditor onChange={setRubros} />
       </div>
 
       {error && (
