@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { projects } from "@/lib/db/schema"
 import { requireAuth, requireRole } from "@/lib/auth"
 import { and, desc, eq, isNull } from "drizzle-orm"
+import { seedProjectRubros } from "@/lib/rubros"
 
 export async function GET(req: Request) {
   try {
@@ -47,20 +48,25 @@ export async function POST(req: Request) {
     const body = await req.json()
     const data = createSchema.parse(body)
 
-    const [project] = await db
-      .insert(projects)
-      .values({
-        client_id: data.client_id,
-        name: data.name,
-        description: data.description || null,
-        quoted_amount: String(data.quoted_amount),
-        advance_percentage: String(data.advance_percentage),
-        contingency_percentage: String(data.contingency_percentage),
-        start_date: data.start_date,
-        estimated_end_date: data.estimated_end_date || null,
-        created_by: user.id,
-      })
-      .returning({ id: projects.id, name: projects.name })
+    const project = await db.transaction(async (tx) => {
+      const [p] = await tx
+        .insert(projects)
+        .values({
+          client_id: data.client_id,
+          name: data.name,
+          description: data.description || null,
+          quoted_amount: String(data.quoted_amount),
+          advance_percentage: String(data.advance_percentage),
+          contingency_percentage: String(data.contingency_percentage),
+          start_date: data.start_date,
+          estimated_end_date: data.estimated_end_date || null,
+          created_by: user.id,
+        })
+        .returning({ id: projects.id, name: projects.name })
+
+      await seedProjectRubros(tx, p.id)
+      return p
+    })
 
     return NextResponse.json({ success: true, data: project }, { status: 201 })
   } catch (err) {

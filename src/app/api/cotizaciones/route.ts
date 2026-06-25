@@ -6,6 +6,7 @@ import { desc, eq, isNull } from "drizzle-orm"
 import { z } from "zod"
 import { generateQuoteNumber } from "@/lib/quoteNumber"
 import { calculateQuoteTotals } from "@/lib/calculations"
+import { seedQuoteRubros } from "@/lib/rubros"
 
 const createSchema = z.object({
   project_name:           z.string().min(1).max(300),
@@ -85,30 +86,35 @@ export async function POST(req: Request) {
 
     const totals = calculateQuoteTotals([], d.discount_percentage, d.tax_percentage, d.advance_percentage)
 
-    const [quote] = await db
-      .insert(quotes)
-      .values({
-        quote_number,
-        lead_id:                d.lead_id    ?? null,
-        client_id:              d.client_id  ?? null,
-        project_name:           d.project_name,
-        description:            d.description ?? null,
-        contact_name:           contactName   ?? null,
-        contact_phone:          contactPhone  ?? null,
-        contact_email:          contactEmail  ?? null,
-        valid_until:            d.valid_until,
-        discount_percentage:    String(d.discount_percentage),
-        tax_percentage:         String(d.tax_percentage),
-        advance_percentage:     String(d.advance_percentage),
-        contingency_percentage: String(d.contingency_percentage),
-        subtotal_amount:        String(totals.subtotal_amount),
-        discount_amount:        String(totals.discount_amount),
-        tax_amount:             String(totals.tax_amount),
-        total_amount:           String(totals.total_amount),
-        advance_amount:         String(totals.advance_amount),
-        created_by:             user.id,
-      })
-      .returning()
+    const quote = await db.transaction(async (tx) => {
+      const [q] = await tx
+        .insert(quotes)
+        .values({
+          quote_number,
+          lead_id:                d.lead_id    ?? null,
+          client_id:              d.client_id  ?? null,
+          project_name:           d.project_name,
+          description:            d.description ?? null,
+          contact_name:           contactName   ?? null,
+          contact_phone:          contactPhone  ?? null,
+          contact_email:          contactEmail  ?? null,
+          valid_until:            d.valid_until,
+          discount_percentage:    String(d.discount_percentage),
+          tax_percentage:         String(d.tax_percentage),
+          advance_percentage:     String(d.advance_percentage),
+          contingency_percentage: String(d.contingency_percentage),
+          subtotal_amount:        String(totals.subtotal_amount),
+          discount_amount:        String(totals.discount_amount),
+          tax_amount:             String(totals.tax_amount),
+          total_amount:           String(totals.total_amount),
+          advance_amount:         String(totals.advance_amount),
+          created_by:             user.id,
+        })
+        .returning()
+
+      await seedQuoteRubros(tx, q.id)
+      return q
+    })
 
     return NextResponse.json({ success: true, data: quote }, { status: 201 })
   } catch {
