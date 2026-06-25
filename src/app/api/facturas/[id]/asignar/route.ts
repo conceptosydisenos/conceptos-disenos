@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { db } from "@/lib/db"
-import { invoices, invoice_allocations, audit_logs } from "@/lib/db/schema"
+import { invoices, invoice_allocations, audit_logs, project_rubros } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { and, eq } from "drizzle-orm"
+import { and, eq, inArray } from "drizzle-orm"
 import { validateAllocationTotal } from "@/lib/calculations"
 
 const allocationSchema = z.object({
@@ -58,6 +58,32 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         },
         { status: 400 }
       )
+    }
+
+    // 2b. Validate project_rubro_id FKs — each must belong to the project_id on the same row.
+    //     Without this check a caller could supply a rubro from an unrelated project.
+    const suppliedRubroIds = allocations
+      .map((a) => a.project_rubro_id)
+      .filter((id): id is string => !!id)
+
+    if (suppliedRubroIds.length > 0) {
+      const validRubros = await db
+        .select({ id: project_rubros.id, project_id: project_rubros.project_id })
+        .from(project_rubros)
+        .where(inArray(project_rubros.id, suppliedRubroIds))
+
+      const rubroOwner = new Map(validRubros.map((r) => [r.id, r.project_id]))
+
+      for (const a of allocations) {
+        if (!a.project_rubro_id) continue
+        const owner = rubroOwner.get(a.project_rubro_id)
+        if (!owner || owner !== a.project_id) {
+          return NextResponse.json(
+            { success: false, error: "Rubro inválido para el proyecto seleccionado" },
+            { status: 400 }
+          )
+        }
+      }
     }
 
     // 3. Atomic claim: UPDATE only succeeds if status is still pending_allocation.

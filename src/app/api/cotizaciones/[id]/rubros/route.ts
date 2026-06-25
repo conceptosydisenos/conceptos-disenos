@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { db } from "@/lib/db"
-import { quote_rubros, RUBRO_TYPES } from "@/lib/db/schema"
+import { quotes, quote_rubros, RUBRO_TYPES } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
 import { and, eq } from "drizzle-orm"
 
@@ -17,12 +17,25 @@ const rubroSchema = z.object({
   ).min(1),
 })
 
+async function assertQuoteExists(id: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: quotes.id })
+    .from(quotes)
+    .where(eq(quotes.id, id))
+  return !!row
+}
+
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     await requireAuth()
+
+    if (!(await assertQuoteExists(params.id))) {
+      return NextResponse.json({ success: false, error: "Cotización no encontrada" }, { status: 404 })
+    }
+
     const body = await req.json()
     const { rubros } = rubroSchema.parse(body)
 
@@ -74,6 +87,11 @@ export async function GET(
 ) {
   try {
     await requireAuth()
+
+    if (!(await assertQuoteExists(params.id))) {
+      return NextResponse.json({ success: false, error: "Cotización no encontrada" }, { status: 404 })
+    }
+
     const rows = await db
       .select()
       .from(quote_rubros)

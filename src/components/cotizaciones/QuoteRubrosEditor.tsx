@@ -123,17 +123,17 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
               $
             </span>
             <Input
-              type="number"
-              min={0}
-              step={10000}
-              value={rubro.budget_amount === 0 ? "" : rubro.budget_amount}
-              onChange={(e) =>
-                update(idx, { budget_amount: parseFloat(e.target.value) || 0 })
-              }
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={rubro.budget_amount === 0 ? "" : String(rubro.budget_amount)}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "")
+                update(idx, { budget_amount: parseInt(digits, 10) || 0 })
+              }}
               placeholder="0"
               className="pl-7 tabular-nums h-9"
               disabled={!rubro.active}
-              inputMode="numeric"
             />
           </div>
         </div>
