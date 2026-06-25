@@ -157,6 +157,9 @@ export const budget_items = pgTable("budget_items", {
   project_id: uuid("project_id")
     .references(() => projects.id)
     .notNull(),
+  // Nullable FK: set when the item belongs to a structured rubro.
+  // NULL for categories without a matching rubro_type (equipos, otro).
+  project_rubro_id: uuid("project_rubro_id").references(() => project_rubros.id),
   category: text("category", { enum: BUDGET_CATEGORIES }).notNull(),
   name: text("name").notNull(),
   unit: text("unit").notNull(),
