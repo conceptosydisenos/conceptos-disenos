@@ -24,12 +24,36 @@ const timestamps = {
 // The conversion cotización→proyecto copies quote_items to budget_items;
 // a mismatch here would produce invalid rows at runtime.
 export const BUDGET_CATEGORIES = [
-  "materiales",
   "mano_obra",
-  "equipos",
+  "materiales",
+  "escombros",
+  "acarreos",
+  "demoliciones",
+  "carpinteria",
+  "vidreria",
+  "adicionales",
   "imprevistos",
+  "equipos",
   "otro",
+  "personalizado",
 ] as const
+
+// Rubro types used in project_rubros / quote_rubros (Fase 1.5).
+// Subset of BUDGET_CATEGORIES — the 9 structural rubros + personalizado.
+export const RUBRO_TYPES = [
+  "mano_obra",
+  "materiales",
+  "escombros",
+  "acarreos",
+  "demoliciones",
+  "carpinteria",
+  "vidreria",
+  "adicionales",
+  "imprevistos",
+  "personalizado",
+] as const
+
+export type RubroType = (typeof RUBRO_TYPES)[number]
 
 export const LEAD_SOURCES = [
   "referido",
@@ -133,9 +157,7 @@ export const budget_items = pgTable("budget_items", {
   project_id: uuid("project_id")
     .references(() => projects.id)
     .notNull(),
-  category: text("category", {
-    enum: ["materiales", "mano_obra", "equipos", "imprevistos", "otro"],
-  }).notNull(),
+  category: text("category", { enum: BUDGET_CATEGORIES }).notNull(),
   name: text("name").notNull(),
   unit: text("unit").notNull(),
   quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(),
@@ -522,5 +544,57 @@ export const quote_items = pgTable(
   },
   (t) => ({
     quoteIdx: index("quote_items_quote_id_idx").on(t.quote_id),
+  })
+)
+
+// ── project_rubros [Fase 1.5] ────────────────────────────────
+// Structural budget categories for each project.
+// 9 fixed rubros (all RUBRO_TYPES except personalizado) are auto-created
+// when a project is created or migrated. personalizado is user-added.
+export const project_rubros = pgTable(
+  "project_rubros",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    project_id: uuid("project_id")
+      .references(() => projects.id)
+      .notNull(),
+    rubro_type: text("rubro_type", { enum: RUBRO_TYPES }).notNull(),
+    name: text("name").notNull(),
+    budget_amount: numeric("budget_amount", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0.00"),
+    active: boolean("active").notNull().default(true),
+    sort_order: integer("sort_order").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => ({
+    projectIdx: index("project_rubros_project_id_idx").on(t.project_id),
+    projectTypeUq: uniqueIndex("project_rubros_project_type_uq").on(t.project_id, t.rubro_type),
+  })
+)
+
+// ── quote_rubros [Fase 1.5] ──────────────────────────────────
+// Structural budget categories for each quotation.
+// Mirrors project_rubros but scoped to quotes; copied to project_rubros
+// when a quote is converted to a project.
+export const quote_rubros = pgTable(
+  "quote_rubros",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    quote_id: uuid("quote_id")
+      .references(() => quotes.id)
+      .notNull(),
+    rubro_type: text("rubro_type", { enum: RUBRO_TYPES }).notNull(),
+    name: text("name").notNull(),
+    budget_amount: numeric("budget_amount", { precision: 15, scale: 2 })
+      .notNull()
+      .default("0.00"),
+    active: boolean("active").notNull().default(true),
+    sort_order: integer("sort_order").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => ({
+    quoteIdx: index("quote_rubros_quote_id_idx").on(t.quote_id),
+    quoteTypeUq: uniqueIndex("quote_rubros_quote_type_uq").on(t.quote_id, t.rubro_type),
   })
 )
