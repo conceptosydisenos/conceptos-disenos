@@ -1,6 +1,6 @@
 import { Pool } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-serverless"
-import { quotes, quote_items, projects, budget_items, clients, leads } from "@/lib/db/schema"
+import { quotes, quote_items, quote_rubros, projects, budget_items, project_rubros, clients, leads } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 
 interface ConvertResult {
@@ -18,9 +18,10 @@ interface ConvertResult {
  * Steps:
  * 1. Resolve or create a client (uses quote.client_id, else auto-creates from contact info)
  * 2. Create project (quoted_amount = quote.total_amount)
- * 3. Copy quote_items → budget_items
- * 4. Mark quote as converted, set converted_to_project_id
- * 5. If the quote has a lead_id, update lead.converted_to_client_id
+ * 3. Copy quote_rubros → project_rubros (preserving name, budget_amount, active, sort_order)
+ * 4. Copy quote_items → budget_items, mapping quote_rubro_id → project_rubro_id
+ * 5. Mark quote as converted, set converted_to_project_id
+ * 6. If the quote has a lead_id, update lead.converted_to_client_id
  */
 export async function convertQuoteToProject(
   quoteId: string,
@@ -41,10 +42,10 @@ export async function convertQuoteToProject(
       if (quote.status !== "approved") throw new Error("Solo se pueden convertir cotizaciones aprobadas")
       if (quote.converted_to_project_id) throw new Error("Esta cotización ya fue convertida")
 
-      const items = await tx
-        .select()
-        .from(quote_items)
-        .where(eq(quote_items.quote_id, quoteId))
+      const [items, sourceRubros] = await Promise.all([
+        tx.select().from(quote_items).where(eq(quote_items.quote_id, quoteId)),
+        tx.select().from(quote_rubros).where(eq(quote_rubros.quote_id, quoteId)),
+      ])
 
       // ── Resolve client ───────────────────────────────────────
       let clientId = quote.client_id
@@ -76,11 +77,40 @@ export async function convertQuoteToProject(
         })
         .returning({ id: projects.id, name: projects.name })
 
+      // ── Copy rubros ──────────────────────────────────────────
+      // Build a map from quote_rubro.id → new project_rubro.id so items
+      // can reference the correct rubro after conversion.
+      // RETURNING preserves insertion order, matching sourceRubros[i] → newRubros[i].
+      const quoteRubroToProject = new Map<string, string>()
+
+      if (sourceRubros.length > 0) {
+        const newRubros = await tx
+          .insert(project_rubros)
+          .values(
+            sourceRubros.map((r) => ({
+              project_id:    project.id,
+              rubro_type:    r.rubro_type,
+              name:          r.name,
+              budget_amount: r.budget_amount,
+              active:        r.active,
+              sort_order:    r.sort_order,
+            }))
+          )
+          .returning({ id: project_rubros.id })
+
+        sourceRubros.forEach((qr, i) => {
+          quoteRubroToProject.set(qr.id, newRubros[i].id)
+        })
+      }
+
       // ── Copy items ───────────────────────────────────────────
       if (items.length > 0) {
         await tx.insert(budget_items).values(
           items.map((item) => ({
-            project_id:  project.id,
+            project_id:      project.id,
+            project_rubro_id: item.quote_rubro_id
+              ? (quoteRubroToProject.get(item.quote_rubro_id) ?? null)
+              : null,
             name:        item.name,
             category:    item.category,
             unit:        item.unit,
