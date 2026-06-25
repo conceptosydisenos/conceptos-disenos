@@ -82,8 +82,8 @@ export function QuoteForm({ initialValues }: Props) {
 
       router.push(`/dashboard/cotizaciones/${quoteId}`)
       router.refresh()
-    } catch {
-      setError("Error de conexión")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error de conexión")
       setSaving(false)
     }
   }

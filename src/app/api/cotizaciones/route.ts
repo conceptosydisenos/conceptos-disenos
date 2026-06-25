@@ -117,7 +117,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ success: true, data: quote }, { status: 201 })
-  } catch {
+  } catch (err) {
+    console.error("[POST /api/cotizaciones]", err)
     return NextResponse.json({ success: false, error: "Error al crear cotización" }, { status: 500 })
   }
 }
