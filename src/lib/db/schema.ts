@@ -352,6 +352,7 @@ export const invoice_allocations = pgTable("invoice_allocations", {
   project_id: uuid("project_id")
     .references(() => projects.id)
     .notNull(),
+  project_rubro_id: uuid("project_rubro_id").references(() => project_rubros.id),
   amount: numeric("amount", { precision: 15, scale: 2 }).notNull(),
   percentage: numeric("percentage", { precision: 5, scale: 2 }).notNull(),
   category: text("category", { enum: ["materiales", "equipos", "otro"] })
@@ -535,6 +536,7 @@ export const quote_items = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     quote_id: uuid("quote_id").references(() => quotes.id).notNull(),
+    quote_rubro_id: uuid("quote_rubro_id").references(() => quote_rubros.id),
     category: text("category", { enum: BUDGET_CATEGORIES }).notNull(),
     name: text("name").notNull(),
     description: text("description"),
