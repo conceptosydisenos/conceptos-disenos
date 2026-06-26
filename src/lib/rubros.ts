@@ -1,15 +1,22 @@
 import type { NeonHttpDatabase } from "drizzle-orm/neon-http"
 import type { NeonHttpQueryResultHKT } from "drizzle-orm/neon-http"
+import type { NeonQueryResultHKT } from "drizzle-orm/neon-serverless"
 import type { PgTransaction } from "drizzle-orm/pg-core"
 import type { ExtractTablesWithRelations } from "drizzle-orm"
 import { project_rubros, quote_rubros } from "@/lib/db/schema"
 import * as schema from "@/lib/db/schema"
 
-// Accepts either the db instance or a transaction object from db.transaction().
+// Accepts the HTTP db instance, an HTTP transaction, or a WebSocket transaction
+// (neon-serverless uses NeonQueryResultHKT; neon-http uses NeonHttpQueryResultHKT).
 type AnyDb =
   | NeonHttpDatabase<typeof schema>
   | PgTransaction<
       NeonHttpQueryResultHKT,
+      typeof schema,
+      ExtractTablesWithRelations<typeof schema>
+    >
+  | PgTransaction<
+      NeonQueryResultHKT,
       typeof schema,
       ExtractTablesWithRelations<typeof schema>
     >

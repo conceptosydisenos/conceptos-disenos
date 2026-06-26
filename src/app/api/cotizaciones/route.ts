@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
+import { Pool } from "@neondatabase/serverless"
+import { drizzle } from "drizzle-orm/neon-serverless"
 import { db } from "@/lib/db"
 import { quotes, leads, clients } from "@/lib/db/schema"
+import * as schema from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
 import { desc, eq, isNull } from "drizzle-orm"
 import { z } from "zod"
@@ -53,6 +56,9 @@ export async function GET(_req: Request) {
 }
 
 export async function POST(req: Request) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  const dbWs = drizzle(pool, { schema })
+
   try {
     const user = await requireAuth()
 
@@ -86,7 +92,7 @@ export async function POST(req: Request) {
 
     const totals = calculateQuoteTotals([], d.discount_percentage, d.tax_percentage, d.advance_percentage)
 
-    const quote = await db.transaction(async (tx) => {
+    const quote = await dbWs.transaction(async (tx) => {
       const [q] = await tx
         .insert(quotes)
         .values({
@@ -120,5 +126,7 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("[POST /api/cotizaciones]", err)
     return NextResponse.json({ success: false, error: "Error al crear cotización" }, { status: 500 })
+  } finally {
+    await pool.end()
   }
 }
