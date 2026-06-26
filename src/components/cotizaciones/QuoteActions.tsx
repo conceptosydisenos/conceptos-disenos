@@ -10,10 +10,10 @@ type QuoteStatus = "draft" | "sent" | "approved" | "rejected" | "converted"
 interface Props {
   quoteId: string
   status: QuoteStatus
-  hasItems: boolean
+  hasRubros: boolean
 }
 
-export function QuoteActions({ quoteId, status, hasItems }: Props) {
+export function QuoteActions({ quoteId, status, hasRubros }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
 
@@ -49,7 +49,7 @@ export function QuoteActions({ quoteId, status, hasItems }: Props) {
           <Button
             className="w-full gap-2"
             onClick={() => callAction("enviar")}
-            disabled={loading !== null || !hasItems}
+            disabled={loading !== null || !hasRubros}
           >
             {loading === "enviar"
               ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -90,9 +90,9 @@ export function QuoteActions({ quoteId, status, hasItems }: Props) {
           </>
         )}
 
-        {status === "draft" && !hasItems && (
+        {status === "draft" && !hasRubros && (
           <p className="text-xs text-muted-foreground text-center">
-            Agrega al menos una actividad para poder enviar la cotización.
+            Agrega al menos un rubro con presupuesto para poder enviar la cotización.
           </p>
         )}
       </div>

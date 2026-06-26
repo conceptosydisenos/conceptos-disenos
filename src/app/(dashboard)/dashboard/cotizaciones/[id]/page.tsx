@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { quotes, quote_items, clients, projects } from "@/lib/db/schema"
+import { quotes, quote_items, clients, projects, quote_rubros } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
 import { and, asc, eq, isNull } from "drizzle-orm"
 import { notFound } from "next/navigation"
@@ -48,8 +48,19 @@ export default async function CotizacionDetailPage({ params }: Props) {
         .where(eq(projects.id, quote.converted_to_project_id))
     : []
 
+  const rubros = await db
+    .select({
+      id: quote_rubros.id,
+      name: quote_rubros.name,
+      budget_amount: quote_rubros.budget_amount,
+    })
+    .from(quote_rubros)
+    .where(and(eq(quote_rubros.quote_id, params.id), eq(quote_rubros.active, true)))
+    .orderBy(asc(quote_rubros.sort_order))
+
   const cfg = STATUS_CONFIG[quote.status] ?? STATUS_CONFIG.draft
   const isDraft = quote.status === "draft"
+  const hasRubros = rubros.some(r => parseFloat(r.budget_amount) > 0)
 
   return (
     <main className="px-4 pt-6 pb-24 md:px-8 max-w-2xl mx-auto space-y-5">
@@ -132,6 +143,36 @@ export default async function CotizacionDetailPage({ params }: Props) {
         </div>
       )}
 
+      {/* Rubros y Presupuesto */}
+      {rubros.length > 0 && (() => {
+        const total = rubros.reduce((sum, r) => sum + (parseFloat(r.budget_amount) > 0 ? parseFloat(r.budget_amount) : 0), 0)
+        return (
+          <div className="section-card">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Rubros y Presupuesto</p>
+            <div className="divide-y divide-border">
+              {rubros.map((r) => {
+                const amount = parseFloat(r.budget_amount)
+                return (
+                  <div key={r.id} className="flex items-center justify-between py-2.5">
+                    <span className="text-sm">{r.name}</span>
+                    {amount > 0
+                      ? <span className="text-sm font-medium tabular-nums">{formatCOP(amount)}</span>
+                      : <span className="text-sm text-muted-foreground">Sin presupuesto asignado</span>
+                    }
+                  </div>
+                )
+              })}
+            </div>
+            {total > 0 && (
+              <div className="mt-2 pt-3 border-t border-border flex items-center justify-between">
+                <span className="text-sm font-semibold">Total presupuesto</span>
+                <span className="text-sm font-bold tabular-nums">{formatCOP(total)}</span>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {/* Items editor */}
       <div className="section-card">
         <QuoteItemsEditor
@@ -186,7 +227,7 @@ export default async function CotizacionDetailPage({ params }: Props) {
       </div>
 
       {/* Actions */}
-      <QuoteActions quoteId={quote.id} status={quote.status as "draft" | "sent" | "approved" | "rejected" | "converted"} hasItems={items.length > 0} />
+      <QuoteActions quoteId={quote.id} status={quote.status as "draft" | "sent" | "approved" | "rejected" | "converted"} hasRubros={hasRubros} />
     </main>
   )
 }
