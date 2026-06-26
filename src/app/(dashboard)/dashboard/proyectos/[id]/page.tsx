@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { db } from "@/lib/db"
-import { projects, clients, advances, invoice_allocations, work_cuts, project_extras, budget_items, project_rubros } from "@/lib/db/schema"
+import { projects, clients, advances, invoice_allocations, work_cuts, project_extras, budget_items, project_rubros, contractor_payments } from "@/lib/db/schema"
 import { getCurrentUser } from "@/lib/auth"
 import { Header } from "@/components/layout/Header"
 import { Badge } from "@/components/ui/badge"
@@ -67,7 +67,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
 
   if (!project) notFound()
 
-  const [advancesResult, invoiceCostResult, cutsResult, extrasRows, budgetRows, rubrosRows] = await Promise.all([
+  const [advancesResult, invoiceCostResult, cutsResult, extrasRows, budgetRows, rubrosRows, contractorCostResult] = await Promise.all([
     db
       .select({ total: sql<string>`coalesce(sum(amount)::numeric, 0)` })
       .from(advances)
@@ -132,6 +132,11 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
         project_rubros.sort_order
       )
       .orderBy(project_rubros.sort_order),
+
+    db
+      .select({ total: sql<string>`coalesce(sum(${contractor_payments.amount})::numeric, '0')` })
+      .from(contractor_payments)
+      .where(eq(contractor_payments.project_id, params.id)),
   ])
 
   const quoted = parseFloat(project.quoted_amount)
@@ -139,10 +144,15 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
   const advancePct = parseFloat(project.advance_percentage)
   const totalAdvances = parseFloat(advancesResult[0]?.total ?? "0")
   const totalInvoiceCost = parseFloat(invoiceCostResult[0]?.total ?? "0")
+  const totalContractorCost = parseFloat(contractorCostResult[0]?.total ?? "0")
+  const totalRealEgresos = totalInvoiceCost + totalContractorCost
   const contingencyAmount = (quoted * contingencyPct) / 100
   const pendingBalance = quoted - totalAdvances
   const availableMargin = quoted - contingencyAmount - totalInvoiceCost
   const margin = calculateProjectMargin(quoted, totalInvoiceCost)
+  const realMargin = calculateProjectMargin(quoted, totalRealEgresos)
+  const rentaSemaphore: "green" | "amber" | "red" =
+    realMargin.percentage > 15 ? "green" : realMargin.percentage >= 0 ? "amber" : "red"
   const cutCount = cutsResult[0]?.count ?? 0
   const initialExtras = extrasRows.map((e) => ({
     ...e,
@@ -244,6 +254,62 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
               sub={formatCOP(margin.amount)}
               color={margin.percentage >= 15 ? "green" : margin.percentage >= 0 ? "amber" : "red"}
             />
+          </div>
+        </div>
+
+        {/* Rentabilidad real */}
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            Rentabilidad
+          </h3>
+          <div className="section-card space-y-0 divide-y divide-border">
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-xs text-muted-foreground">Valor contrato</span>
+              <span className="text-sm font-medium tabular-nums">{formatCOP(quoted)}</span>
+            </div>
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-xs text-muted-foreground">Anticipos recibidos</span>
+              <span className={`text-sm tabular-nums ${totalAdvances === 0 ? "text-muted-foreground" : "font-medium"}`}>
+                {totalAdvances === 0 ? "Sin anticipos" : formatCOP(totalAdvances)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-xs text-muted-foreground">Facturas asignadas</span>
+              <span className="text-sm tabular-nums text-red-600">{totalInvoiceCost > 0 ? `−${formatCOP(totalInvoiceCost)}` : formatCOP(0)}</span>
+            </div>
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-xs text-muted-foreground">Pagos a contratistas</span>
+              <span className="text-sm tabular-nums text-red-600">{totalContractorCost > 0 ? `−${formatCOP(totalContractorCost)}` : formatCOP(0)}</span>
+            </div>
+            <div className={`rounded-b-xl -mx-6 px-6 py-3 mt-0 flex items-center justify-between ${
+              rentaSemaphore === "green" ? "bg-green-50" :
+              rentaSemaphore === "amber" ? "bg-amber-50" :
+              "bg-red-50"
+            }`}>
+              <div>
+                <p className={`text-[11px] font-medium ${
+                  rentaSemaphore === "green" ? "text-green-700" :
+                  rentaSemaphore === "amber" ? "text-amber-700" :
+                  "text-red-700"
+                }`}>
+                  {rentaSemaphore === "green" ? "Saludable" : rentaSemaphore === "amber" ? "En riesgo" : "En pérdida"}
+                </p>
+                <p className={`text-base font-bold tabular-nums ${
+                  rentaSemaphore === "green" ? "text-green-800" :
+                  rentaSemaphore === "amber" ? "text-amber-800" :
+                  "text-red-800"
+                }`}>
+                  {formatCOP(realMargin.amount)}
+                </p>
+              </div>
+              <p className={`text-2xl font-bold tabular-nums ${
+                rentaSemaphore === "green" ? "text-green-700" :
+                rentaSemaphore === "amber" ? "text-amber-700" :
+                "text-red-700"
+              }`}>
+                {realMargin.percentage.toFixed(1)}%
+              </p>
+            </div>
           </div>
         </div>
 

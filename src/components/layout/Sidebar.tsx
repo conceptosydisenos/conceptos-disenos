@@ -3,6 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import {
   LayoutDashboard,
   FolderOpen,
@@ -17,9 +18,11 @@ import {
   UserRoundSearch,
   FileText,
   Activity,
+  BellRing,
 } from "lucide-react"
 import { useClerk, useUser } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
+import type { SystemAlert } from "@/lib/alertas"
 
 const navItems = [
   { href: "/dashboard",              icon: LayoutDashboard, label: "Resumen",       exact: true },
@@ -32,6 +35,7 @@ const navItems = [
 ]
 
 const adminItems = [
+  { href: "/dashboard/alertas",      icon: BellRing,   label: "Alertas",        badge: true },
   { href: "/dashboard/rentabilidad", icon: TrendingUp, label: "Rentabilidad" },
   { href: "/dashboard/clientes",     icon: Users,      label: "Clientes" },
   { href: "/dashboard/reportes",     icon: BarChart3,  label: "Reportes" },
@@ -47,6 +51,21 @@ export function Sidebar({ role, userName }: SidebarProps) {
   const pathname = usePathname()
   const { signOut } = useClerk()
   const { user: clerkUser } = useUser()
+  const [criticalBadge, setCriticalBadge] = useState(0)
+
+  useEffect(() => {
+    if (role !== "admin") return
+    fetch("/api/alertas")
+      .then(r => r.json())
+      .then((d: { success: boolean; data?: SystemAlert[] }) => {
+        if (d.success && Array.isArray(d.data)) {
+          setCriticalBadge(
+            d.data.filter(a => a.severity === "critica" || a.severity === "alta").length
+          )
+        }
+      })
+      .catch(() => {})
+  }, [role])
 
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/")
@@ -134,8 +153,9 @@ export function Sidebar({ role, userName }: SidebarProps) {
                 Administración
               </p>
             </div>
-            {adminItems.map(({ href, icon: Icon, label }) => {
+            {adminItems.map(({ href, icon: Icon, label, ...rest }) => {
               const active = isActive(href)
+              const showBadge = "badge" in rest && rest.badge && criticalBadge > 0
               return (
                 <Link
                   key={href}
@@ -153,7 +173,12 @@ export function Sidebar({ role, userName }: SidebarProps) {
                       active ? "text-emerald-400" : "text-white/40"
                     )}
                   />
-                  {label}
+                  <span className="flex-1">{label}</span>
+                  {showBadge && (
+                    <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
+                      {criticalBadge > 9 ? "9+" : criticalBadge}
+                    </span>
+                  )}
                 </Link>
               )
             })}

@@ -2,6 +2,7 @@ import { eq, and, sql, lt } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { invoices, projects, work_cuts } from "@/lib/db/schema"
 import { getCurrentUser } from "@/lib/auth"
+import { getAlerts, type SystemAlert } from "@/lib/alertas"
 import { Header } from "@/components/layout/Header"
 import {
   FolderOpen,
@@ -11,6 +12,7 @@ import {
   TrendingUp,
   ArrowRight,
   FileUp,
+  BellRing,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -79,7 +81,10 @@ async function getDashboardData(isAdmin: boolean) {
 export default async function DashboardPage() {
   const user = await getCurrentUser()
   const isAdmin = user?.role === "admin"
-  const data = await getDashboardData(isAdmin ?? false)
+  const [data, systemAlerts] = await Promise.all([
+    getDashboardData(isAdmin ?? false),
+    isAdmin ? getAlerts() : Promise.resolve([] as SystemAlert[]),
+  ])
   const firstName = user?.name.split(" ")[0] ?? "Usuario"
 
   const now = new Date()
@@ -111,6 +116,34 @@ export default async function DashboardPage() {
             </div>
             <ArrowRight className="w-4 h-4 text-red-400 shrink-0" />
           </Link>
+        )}
+
+        {/* Alerts card — admin only */}
+        {isAdmin && systemAlerts.length > 0 && (
+          <div className="section-card">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-red-100 shrink-0">
+                <BellRing className="w-3.5 h-3.5 text-red-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Alertas del sistema</p>
+                <p className="text-xs text-muted-foreground">
+                  {systemAlerts.length} alerta{systemAlerts.length !== 1 ? "s" : ""} activa{systemAlerts.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {systemAlerts.slice(0, 3).map((alert, idx) => (
+                <DashboardAlertRow key={idx} alert={alert} />
+              ))}
+            </div>
+            <Link
+              href="/dashboard/alertas"
+              className="mt-3 flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+            >
+              Ver todas las alertas <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
         )}
 
         {/* KPI cards */}
@@ -250,6 +283,22 @@ function KpiCard({
       </p>
       <p className="text-xs text-muted-foreground mt-1">{label}</p>
     </Link>
+  )
+}
+
+const SEVERITY_DOT: Record<string, string> = {
+  critica: "bg-red-500",
+  alta:    "bg-orange-500",
+  media:   "bg-amber-500",
+  baja:    "bg-blue-400",
+}
+
+function DashboardAlertRow({ alert }: { alert: SystemAlert }) {
+  return (
+    <div className="flex items-start gap-2 py-1">
+      <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${SEVERITY_DOT[alert.severity] ?? "bg-muted"}`} />
+      <p className="text-xs text-foreground leading-snug line-clamp-2">{alert.message}</p>
+    </div>
   )
 }
 
