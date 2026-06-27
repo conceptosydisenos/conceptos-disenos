@@ -262,50 +262,67 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
             Rentabilidad
           </h3>
-          <div className="section-card space-y-0 divide-y divide-border">
-            <div className="flex items-center justify-between py-2.5">
-              <span className="text-xs text-muted-foreground">Valor contrato</span>
-              <span className="text-sm font-medium tabular-nums">{formatCOP(quoted)}</span>
+          <div className="section-card">
+            <div className="divide-y divide-border">
+              <div className="flex items-center justify-between py-2.5">
+                <span className="text-xs text-muted-foreground">Valor del contrato</span>
+                <span className="text-sm font-medium tabular-nums">{formatCOP(quoted)}</span>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <span className="text-xs text-muted-foreground">Anticipos recibidos</span>
+                <span className={`text-sm tabular-nums ${totalAdvances === 0 ? "text-muted-foreground" : "font-medium"}`}>
+                  {totalAdvances === 0 ? "Sin anticipos" : formatCOP(totalAdvances)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <span className="text-xs text-muted-foreground">Facturas pagadas</span>
+                <span className="text-sm tabular-nums text-red-600">
+                  {totalInvoiceCost > 0 ? `−${formatCOP(totalInvoiceCost)}` : formatCOP(0)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <span className="text-xs text-muted-foreground">Pagos a contratistas</span>
+                <span className="text-sm tabular-nums text-red-600">
+                  {totalContractorCost > 0 ? `−${formatCOP(totalContractorCost)}` : formatCOP(0)}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center justify-between py-2.5">
-              <span className="text-xs text-muted-foreground">Anticipos recibidos</span>
-              <span className={`text-sm tabular-nums ${totalAdvances === 0 ? "text-muted-foreground" : "font-medium"}`}>
-                {totalAdvances === 0 ? "Sin anticipos" : formatCOP(totalAdvances)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-2.5">
-              <span className="text-xs text-muted-foreground">Facturas asignadas</span>
-              <span className="text-sm tabular-nums text-red-600">{totalInvoiceCost > 0 ? `−${formatCOP(totalInvoiceCost)}` : formatCOP(0)}</span>
-            </div>
-            <div className="flex items-center justify-between py-2.5">
-              <span className="text-xs text-muted-foreground">Pagos a contratistas</span>
-              <span className="text-sm tabular-nums text-red-600">{totalContractorCost > 0 ? `−${formatCOP(totalContractorCost)}` : formatCOP(0)}</span>
-            </div>
-            <div className={`rounded-b-xl -mx-6 px-6 py-3 mt-0 flex items-center justify-between ${
-              rentaSemaphore === "green" ? "bg-green-50" :
-              rentaSemaphore === "amber" ? "bg-amber-50" :
-              "bg-red-50"
+
+            {/* Result block — separate rounded card inside */}
+            <div className={`mt-3 rounded-xl border p-4 flex items-center justify-between ${
+              rentaSemaphore === "green"
+                ? "bg-green-50 border-green-200"
+                : rentaSemaphore === "amber"
+                ? "bg-amber-50 border-amber-200"
+                : "bg-red-50 border-red-200"
             }`}>
               <div>
-                <p className={`text-[11px] font-medium ${
-                  rentaSemaphore === "green" ? "text-green-700" :
-                  rentaSemaphore === "amber" ? "text-amber-700" :
-                  "text-red-700"
+                <p className={`text-[11px] font-semibold uppercase tracking-wide ${
+                  rentaSemaphore === "green" ? "text-green-700"
+                  : rentaSemaphore === "amber" ? "text-amber-700"
+                  : "text-red-700"
                 }`}>
                   {rentaSemaphore === "green" ? "Saludable" : rentaSemaphore === "amber" ? "En riesgo" : "En pérdida"}
                 </p>
-                <p className={`text-base font-bold tabular-nums ${
-                  rentaSemaphore === "green" ? "text-green-800" :
-                  rentaSemaphore === "amber" ? "text-amber-800" :
-                  "text-red-800"
+                <p className={`text-base font-bold tabular-nums mt-0.5 ${
+                  rentaSemaphore === "green" ? "text-green-800"
+                  : rentaSemaphore === "amber" ? "text-amber-800"
+                  : "text-red-800"
                 }`}>
                   {formatCOP(realMargin.amount)}
                 </p>
+                <p className={`text-[10px] mt-0.5 ${
+                  rentaSemaphore === "green" ? "text-green-600"
+                  : rentaSemaphore === "amber" ? "text-amber-600"
+                  : "text-red-600"
+                }`}>
+                  Utilidad proyectada
+                </p>
               </div>
-              <p className={`text-2xl font-bold tabular-nums ${
-                rentaSemaphore === "green" ? "text-green-700" :
-                rentaSemaphore === "amber" ? "text-amber-700" :
-                "text-red-700"
+              <p className={`text-3xl font-bold tabular-nums ${
+                rentaSemaphore === "green" ? "text-green-700"
+                : rentaSemaphore === "amber" ? "text-amber-700"
+                : "text-red-700"
               }`}>
                 {realMargin.percentage.toFixed(1)}%
               </p>

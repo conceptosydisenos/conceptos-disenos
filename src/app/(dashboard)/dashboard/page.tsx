@@ -193,7 +193,7 @@ export default async function DashboardPage() {
                 Importar datos históricos
               </p>
               <p className="text-xs text-muted-foreground">
-                Carga tus Excel de Carolina convertidos a Markdown
+                Carga tus archivos Excel con datos históricos
               </p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-primary transition-colors" />
