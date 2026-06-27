@@ -19,6 +19,7 @@ import {
   FileText,
   Activity,
   BellRing,
+  MessageSquare,
 } from "lucide-react"
 import { useClerk, useUser } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
@@ -35,11 +36,12 @@ const navItems = [
 ]
 
 const adminItems = [
-  { href: "/dashboard/alertas",      icon: BellRing,   label: "Alertas",        badge: true },
-  { href: "/dashboard/rentabilidad", icon: TrendingUp, label: "Rentabilidad" },
-  { href: "/dashboard/clientes",     icon: Users,      label: "Clientes" },
-  { href: "/dashboard/reportes",     icon: BarChart3,  label: "Reportes" },
-  { href: "/dashboard/importar",     icon: FileUp,     label: "Importar datos" },
+  { href: "/dashboard/alertas",      icon: BellRing,      label: "Alertas",        badge: true },
+  { href: "/dashboard/asistente",    icon: MessageSquare, label: "Asistente" },
+  { href: "/dashboard/rentabilidad", icon: TrendingUp,    label: "Rentabilidad" },
+  { href: "/dashboard/clientes",     icon: Users,         label: "Clientes" },
+  { href: "/dashboard/reportes",     icon: BarChart3,     label: "Reportes" },
+  { href: "/dashboard/importar",     icon: FileUp,        label: "Importar datos" },
 ]
 
 interface SidebarProps {
