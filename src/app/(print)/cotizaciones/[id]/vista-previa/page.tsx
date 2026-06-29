@@ -146,12 +146,12 @@ export default async function VistaPrevia({ params }: Props) {
               const amount = parseFloat(rubro.budget_amount)
               return (
                 <div key={rubro.id} style={{ marginBottom: "12px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: NAVY, color: "white", padding: "9px 14px", borderRadius: rubroItems.length > 0 ? "7px 7px 0 0" : "7px", fontSize: "12px", fontWeight: "700" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderLeft: `4px solid ${GREEN}`, backgroundColor: "#F0FDF9", padding: "9px 14px", borderRadius: rubroItems.length > 0 ? "4px 4px 0 0" : "4px", fontSize: "12px", fontWeight: "700", color: NAVY }}>
                     <span>{rubro.name}</span>
                     {amount > 0 && <span style={{ fontVariantNumeric: "tabular-nums" }}>{fmt(amount)}</span>}
                   </div>
                   {rubroItems.length > 0 && (
-                    <div style={{ border: "1px solid #E5E7EB", borderTop: "none", borderRadius: "0 0 7px 7px", overflow: "hidden" }}>
+                    <div style={{ border: "1px solid #E5E7EB", borderTop: "none", borderRadius: "0 0 4px 4px", overflow: "hidden" }}>
                       {rubroItems.map((item, i) => (
                         <div key={item.id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 14px", fontSize: "12px", backgroundColor: i % 2 === 0 ? "#FAFAFA" : "white" }}>
                           <span style={{ color: "#374151" }}>• {item.name}</span>

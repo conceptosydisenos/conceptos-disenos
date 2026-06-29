@@ -19,11 +19,13 @@
 }
 
 @media print {
-  body {
+  html, body {
+    height: auto;
     padding: 20mm;
   }
   .vp-wrap {
     background: white;
+    min-height: unset;
     padding: 0;
   }
   .vp-card {
