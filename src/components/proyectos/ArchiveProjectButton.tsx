@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation"
 import { Archive, ArchiveRestore } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 
 interface Props {
   projectId: string
@@ -11,22 +10,10 @@ interface Props {
 
 export function ArchiveProjectButton({ projectId, archived }: Props) {
   const router = useRouter()
-  const { toast } = useToast()
 
   function handleClick() {
     router.push("/dashboard/proyectos")
-
     fetch(`/api/proyectos/${projectId}/archivar`, { method: "POST" })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error del servidor")
-      })
-      .catch(() => {
-        toast({
-          title: "No se pudo archivar",
-          description: "El proyecto no se archivó. Intenta de nuevo.",
-          variant: "destructive",
-        })
-      })
   }
 
   return (
