@@ -27,6 +27,7 @@ import { ExtrasSection } from "@/components/proyectos/ExtrasSection"
 import { BudgetSection } from "@/components/proyectos/BudgetSection"
 import { RubrosSection } from "@/components/proyectos/RubrosSection"
 import { ArchiveProjectButton } from "@/components/proyectos/ArchiveProjectButton"
+import { DeleteProjectButton } from "@/components/proyectos/DeleteProjectButton"
 
 export const revalidate = 0
 
@@ -192,6 +193,9 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
                   </Link>
                 </Button>
                 <ArchiveProjectButton projectId={project.id} archived={project.archived} />
+                {project.archived && (
+                  <DeleteProjectButton projectId={project.id} />
+                )}
               </div>
             ) : (
               <Badge variant="outline" className={`shrink-0 ${statusInfo.className}`}>

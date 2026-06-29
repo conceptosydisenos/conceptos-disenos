@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { db } from "@/lib/db"
-import { projects, advances, invoice_allocations, clients } from "@/lib/db/schema"
+import {
+  projects, advances, invoice_allocations, clients,
+  project_rubros, project_extras, budget_items,
+  work_cuts, work_cut_items, contractor_payments,
+} from "@/lib/db/schema"
 import { requireAuth, requireRole } from "@/lib/auth"
-import { and, eq, isNull, sql } from "drizzle-orm"
+import { and, eq, inArray, isNull, sql } from "drizzle-orm"
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
@@ -117,5 +121,48 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ success: false, error: err.errors[0].message }, { status: 400 })
     }
     return NextResponse.json({ success: false, error: "Error al actualizar" }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  try {
+    await requireRole(["admin"])
+
+    const [existing] = await db
+      .select({ id: projects.id, archived: projects.archived })
+      .from(projects)
+      .where(eq(projects.id, params.id))
+
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "No encontrado" }, { status: 404 })
+    }
+    if (!existing.archived) {
+      return NextResponse.json({ success: false, error: "Solo se pueden eliminar proyectos archivados" }, { status: 403 })
+    }
+
+    // Get work_cut IDs for this project before deleting them
+    const cuts = await db
+      .select({ id: work_cuts.id })
+      .from(work_cuts)
+      .where(eq(work_cuts.project_id, params.id))
+
+    const cutIds = cuts.map(c => c.id)
+
+    // Cascade delete in FK dependency order
+    await db.delete(project_extras).where(eq(project_extras.project_id, params.id))
+    if (cutIds.length > 0) {
+      await db.delete(work_cut_items).where(inArray(work_cut_items.work_cut_id, cutIds))
+    }
+    await db.delete(contractor_payments).where(eq(contractor_payments.project_id, params.id))
+    await db.delete(work_cuts).where(eq(work_cuts.project_id, params.id))
+    await db.delete(invoice_allocations).where(eq(invoice_allocations.project_id, params.id))
+    await db.delete(advances).where(eq(advances.project_id, params.id))
+    await db.delete(budget_items).where(eq(budget_items.project_id, params.id))
+    await db.delete(project_rubros).where(eq(project_rubros.project_id, params.id))
+    await db.delete(projects).where(eq(projects.id, params.id))
+
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ success: false, error: "Error al eliminar proyecto" }, { status: 500 })
   }
 }

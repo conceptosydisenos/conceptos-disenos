@@ -8,6 +8,7 @@ import { ChevronLeft, ExternalLink, MoreHorizontal } from "lucide-react"
 import { QuoteItemsEditor } from "@/components/cotizaciones/QuoteItemsEditor"
 import { QuoteActions } from "@/components/cotizaciones/QuoteActions"
 import { ArchiveQuoteButton } from "@/components/cotizaciones/ArchiveQuoteButton"
+import { DeleteQuoteButton } from "@/components/cotizaciones/DeleteQuoteButton"
 import { formatCOP } from "@/lib/utils"
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -113,8 +114,14 @@ export default async function CotizacionDetailPage({ params }: Props) {
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
-              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-border rounded-xl shadow-lg py-1 z-10 hidden group-focus-within:block group-hover:block">
+              <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-border rounded-xl shadow-lg py-1 z-10 hidden group-focus-within:block group-hover:block">
                 <ArchiveQuoteButton quoteId={params.id} archived={quote.archived} />
+                {quote.archived && (
+                  <>
+                    <div className="mx-3 my-1 border-t border-border" />
+                    <DeleteQuoteButton quoteId={params.id} />
+                  </>
+                )}
               </div>
             </div>
           </div>

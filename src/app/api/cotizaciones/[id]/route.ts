@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { quotes, quote_items } from "@/lib/db/schema"
-import { requireAuth } from "@/lib/auth"
+import { quotes, quote_items, quote_rubros } from "@/lib/db/schema"
+import { requireAuth, requireRole } from "@/lib/auth"
 import { and, asc, eq, isNull } from "drizzle-orm"
 import { z } from "zod"
 import { calculateQuoteTotals } from "@/lib/calculations"
@@ -107,5 +107,31 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ success: true, data: updated })
   } catch {
     return NextResponse.json({ success: false, error: "Error al actualizar cotización" }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  try {
+    await requireRole(["admin"])
+
+    const [existing] = await db
+      .select({ id: quotes.id, archived: quotes.archived })
+      .from(quotes)
+      .where(eq(quotes.id, params.id))
+
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "No encontrada" }, { status: 404 })
+    }
+    if (!existing.archived) {
+      return NextResponse.json({ success: false, error: "Solo se pueden eliminar cotizaciones archivadas" }, { status: 403 })
+    }
+
+    await db.delete(quote_items).where(eq(quote_items.quote_id, params.id))
+    await db.delete(quote_rubros).where(eq(quote_rubros.quote_id, params.id))
+    await db.delete(quotes).where(eq(quotes.id, params.id))
+
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ success: false, error: "Error al eliminar cotización" }, { status: 500 })
   }
 }
