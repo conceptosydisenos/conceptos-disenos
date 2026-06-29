@@ -8,6 +8,7 @@ import { ChevronLeft, ExternalLink } from "lucide-react"
 import { QuoteItemsEditor } from "@/components/cotizaciones/QuoteItemsEditor"
 import { QuoteActions } from "@/components/cotizaciones/QuoteActions"
 import { PdfDownloadButton } from "@/components/cotizaciones/PdfDownloadButton"
+import type { QuotePDFData, RubroPDFData } from "@/components/cotizaciones/CotizacionPDF"
 import { formatCOP } from "@/lib/utils"
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -73,6 +74,35 @@ export default async function CotizacionDetailPage({ params }: Props) {
   const isDraft = quote.status === "draft"
   const hasRubros = rubros.some(r => parseFloat(r.budget_amount) > 0)
 
+  const pdfQuote: QuotePDFData = {
+    quote_number:        quote.quote_number,
+    project_name:        quote.project_name,
+    contact_name:        quote.contact_name,
+    contact_phone:       quote.contact_phone,
+    contact_email:       quote.contact_email,
+    valid_until:         quote.valid_until,
+    created_at:          quote.created_at.toISOString(),
+    discount_percentage: quote.discount_percentage,
+    tax_percentage:      quote.tax_percentage,
+    advance_percentage:  quote.advance_percentage,
+    advance_amount:      quote.advance_amount,
+    total_amount:        quote.total_amount,
+    subtotal_amount:     quote.subtotal_amount,
+  }
+
+  const pdfRubros: RubroPDFData[] = rubros.map(r => ({
+    id:            r.id,
+    name:          r.name,
+    budget_amount: r.budget_amount,
+    active:        true,
+    activities:    (itemsByRubroId.get(r.id) ?? []).map(item => ({
+      name:       item.name,
+      unit_price: item.unit_price,
+    })),
+  }))
+
+  const pdfData = { quote: pdfQuote, rubros: pdfRubros }
+
   return (
     <main className="px-4 pt-6 pb-24 md:px-8 max-w-2xl mx-auto space-y-5">
       {/* Back + header */}
@@ -99,7 +129,7 @@ export default async function CotizacionDetailPage({ params }: Props) {
                 Editar
               </Link>
             )}
-            <PdfDownloadButton quoteId={params.id} quoteNumber={quote.quote_number} />
+            <PdfDownloadButton quoteNumber={quote.quote_number} pdfData={pdfData} />
           </div>
         )}
       </div>
@@ -266,7 +296,13 @@ export default async function CotizacionDetailPage({ params }: Props) {
       </div>
 
       {/* Actions */}
-      <QuoteActions quoteId={quote.id} status={quote.status as "draft" | "sent" | "approved" | "rejected" | "converted"} hasRubros={hasRubros} />
+      <QuoteActions
+        quoteId={quote.id}
+        status={quote.status as "draft" | "sent" | "approved" | "rejected" | "converted"}
+        hasRubros={hasRubros}
+        quoteNumber={quote.quote_number}
+        pdfData={pdfData}
+      />
     </main>
   )
 }

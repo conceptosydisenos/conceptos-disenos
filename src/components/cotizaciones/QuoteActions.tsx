@@ -4,16 +4,20 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Send, CheckCircle2, FolderPlus, Loader2 } from "lucide-react"
+import { generatePDFBlob, sharePDF } from "@/lib/pdfClient"
+import type { QuotePDFData, RubroPDFData } from "@/lib/pdfClient"
 
 type QuoteStatus = "draft" | "sent" | "approved" | "rejected" | "converted"
 
 interface Props {
-  quoteId: string
-  status: QuoteStatus
-  hasRubros: boolean
+  quoteId:     string
+  status:      QuoteStatus
+  hasRubros:   boolean
+  quoteNumber: string
+  pdfData?:    { quote: QuotePDFData; rubros: RubroPDFData[] }
 }
 
-export function QuoteActions({ quoteId, status, hasRubros }: Props) {
+export function QuoteActions({ quoteId, status, hasRubros, quoteNumber, pdfData }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
 
@@ -30,9 +34,22 @@ export function QuoteActions({ quoteId, status, hasRubros }: Props) {
 
       if (action === "convertir" && json.data?.project_id) {
         router.push(`/dashboard/proyectos/${json.data.project_id}`)
-      } else {
-        router.refresh()
+        return
       }
+
+      if (action === "enviar" && pdfData) {
+        const fileName = `cotizacion-${quoteNumber.replace(/\//g, "-")}.pdf`
+        try {
+          const blob = await generatePDFBlob(pdfData.quote, pdfData.rubros)
+          await sharePDF(blob, fileName)
+        } catch (pdfErr) {
+          if (!(pdfErr instanceof Error && pdfErr.name === "AbortError")) {
+            console.error("PDF error:", pdfErr)
+          }
+        }
+      }
+
+      router.refresh()
     } finally {
       setLoading(null)
     }
