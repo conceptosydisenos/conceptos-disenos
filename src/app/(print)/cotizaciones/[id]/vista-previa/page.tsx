@@ -63,15 +63,18 @@ export default async function VistaPrevia({ params }: Props) {
     }
   }
 
-  const subtotal  = parseFloat(quote.subtotal_amount)
-  const discount  = parseFloat(quote.discount_amount)
-  const tax       = parseFloat(quote.tax_amount)
-  const total     = parseFloat(quote.total_amount)
-  const advance   = parseFloat(quote.advance_amount)
+  const activeRubros = rubros.filter(r => r.active)
+
+  const subtotal  = activeRubros.reduce((sum, r) => sum + parseFloat(r.budget_amount), 0)
+  const discountPct = parseFloat(quote.discount_percentage)
+  const taxPct      = parseFloat(quote.tax_percentage)
+  const discount  = subtotal * discountPct / 100
+  const tax       = (subtotal - discount) * taxPct / 100
+  const total     = subtotal - discount + tax
+  const advancePct = parseFloat(quote.advance_percentage)
+  const advance   = total * advancePct / 100
   const remaining = total - advance
   const contactName = clientRow?.name ?? quote.contact_name
-
-  const activeRubros = rubros.filter(r => r.active)
 
   return (
     <div className="vp-wrap">
@@ -81,7 +84,7 @@ export default async function VistaPrevia({ params }: Props) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `2.5px solid ${NAVY}`, paddingBottom: "18px", marginBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.jpg" alt="Logo" width={52} height={52} style={{ objectFit: "contain" }} />
+            <img src="/logo.jpg" alt="Logo" width={80} height={80} style={{ objectFit: "contain" }} />
             <div>
               <div style={{ fontSize: "16px", fontWeight: "700", color: NAVY }}>Conceptos y Diseños</div>
               <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "2px" }}>Arquitectura &amp; Remodelación</div>
@@ -199,12 +202,12 @@ export default async function VistaPrevia({ params }: Props) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             <div style={{ padding: "12px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
               <div style={{ fontSize: "10px", color: "#9CA3AF" }}>Anticipo</div>
-              <div style={{ fontSize: "18px", fontWeight: "700", color: NAVY }}>{quote.advance_percentage}%</div>
+              <div style={{ fontSize: "18px", fontWeight: "700", color: NAVY }}>{advancePct.toFixed(0)}%</div>
               <div style={{ fontSize: "12px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(advance)}</div>
             </div>
             <div style={{ padding: "12px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
               <div style={{ fontSize: "10px", color: "#9CA3AF" }}>Saldo al finalizar</div>
-              <div style={{ fontSize: "18px", fontWeight: "700", color: NAVY }}>{(100 - parseFloat(quote.advance_percentage)).toFixed(0)}%</div>
+              <div style={{ fontSize: "18px", fontWeight: "700", color: NAVY }}>{(100 - advancePct).toFixed(0)}%</div>
               <div style={{ fontSize: "12px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(remaining)}</div>
             </div>
           </div>
