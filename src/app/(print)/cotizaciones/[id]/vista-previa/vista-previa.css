@@ -18,9 +18,14 @@
   size: letter;
 }
 
+@page :blank {
+  display: none;
+}
+
 @media print {
   html, body {
-    height: auto;
+    height: auto !important;
+    min-height: unset !important;
     padding: 12mm;
   }
   .vp-wrap {

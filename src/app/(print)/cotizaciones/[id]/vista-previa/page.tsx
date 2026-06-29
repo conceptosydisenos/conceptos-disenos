@@ -63,7 +63,7 @@ export default async function VistaPrevia({ params }: Props) {
     }
   }
 
-  const activeRubros = rubros.filter(r => r.active)
+  const activeRubros = rubros.filter(r => r.active && parseFloat(r.budget_amount) > 0)
 
   const subtotal  = activeRubros.reduce((sum, r) => sum + parseFloat(r.budget_amount), 0)
   const discountPct = parseFloat(quote.discount_percentage)
