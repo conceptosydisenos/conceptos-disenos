@@ -1,0 +1,31 @@
+.vp-wrap {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 24px 16px 120px;
+}
+
+.vp-card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+@media print {
+  .vp-wrap {
+    background: white;
+    padding: 0;
+  }
+  .vp-card {
+    max-width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 20px;
+  }
+  @page {
+    margin: 15mm 12mm;
+    size: letter;
+  }
+}

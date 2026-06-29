@@ -8,13 +8,12 @@ import { Send, CheckCircle2, FolderPlus, Loader2 } from "lucide-react"
 type QuoteStatus = "draft" | "sent" | "approved" | "rejected" | "converted"
 
 interface Props {
-  quoteId:     string
-  status:      QuoteStatus
-  hasRubros:   boolean
-  quoteNumber: string
+  quoteId:   string
+  status:    QuoteStatus
+  hasRubros: boolean
 }
 
-export function QuoteActions({ quoteId, status, hasRubros, quoteNumber }: Props) {
+export function QuoteActions({ quoteId, status, hasRubros }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
 
@@ -35,20 +34,7 @@ export function QuoteActions({ quoteId, status, hasRubros, quoteNumber }: Props)
       }
 
       if (action === "enviar") {
-        const path = `/dashboard/cotizaciones/${quoteId}/vista-previa`
-        const fullUrl = window.location.origin + path
-
-        if (typeof navigator.share === "function") {
-          navigator
-            .share({ title: `Cotización ${quoteNumber}`, url: fullUrl })
-            .catch((err) => {
-              if (!(err instanceof Error && err.name === "AbortError")) {
-                window.open(path, "_blank")
-              }
-            })
-        } else {
-          window.open(path, "_blank")
-        }
+        window.open(`/cotizaciones/${quoteId}/vista-previa`, "_blank")
       }
 
       router.refresh()

@@ -72,7 +72,7 @@ export default async function CotizacionDetailPage({ params }: Props) {
 
   const cfg = STATUS_CONFIG[quote.status] ?? STATUS_CONFIG.draft
   const isDraft = quote.status === "draft"
-  const isConverted = quote.status === "converted"
+  const showPdfButton = isDraft || quote.status === "approved"
   const hasRubros = rubros.some(r => parseFloat(r.budget_amount) > 0)
 
   return (
@@ -106,9 +106,9 @@ export default async function CotizacionDetailPage({ params }: Props) {
                 Editar
               </Link>
             )}
-            {/* PDF button: not shown for converted quotes */}
-            {!isConverted && (
-              <PdfDownloadButton quoteId={params.id} quoteNumber={quote.quote_number} />
+            {/* PDF button: only for draft and approved */}
+            {showPdfButton && (
+              <PdfDownloadButton quoteId={params.id} />
             )}
             {/* 3-dot menu with archive option */}
             <div className="relative group mt-0.5">
@@ -293,7 +293,6 @@ export default async function CotizacionDetailPage({ params }: Props) {
         quoteId={quote.id}
         status={quote.status as "draft" | "sent" | "approved" | "rejected" | "converted"}
         hasRubros={hasRubros}
-        quoteNumber={quote.quote_number}
       />
     </main>
   )
