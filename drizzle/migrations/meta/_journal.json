@@ -43,6 +43,13 @@
       "when": 1782420395052,
       "tag": "0005_perpetual_ricochet",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782761008220,
+      "tag": "0006_huge_toad",
+      "breakpoints": true
     }
   ]
 }

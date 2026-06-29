@@ -4,11 +4,11 @@ import { requireAuth } from "@/lib/auth"
 import { and, asc, eq, isNull } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, ExternalLink } from "lucide-react"
+import { ChevronLeft, ExternalLink, MoreHorizontal } from "lucide-react"
 import { QuoteItemsEditor } from "@/components/cotizaciones/QuoteItemsEditor"
 import { QuoteActions } from "@/components/cotizaciones/QuoteActions"
 import { PdfDownloadButton } from "@/components/cotizaciones/PdfDownloadButton"
-import type { QuotePDFData, RubroPDFData } from "@/components/cotizaciones/CotizacionPDF"
+import { ArchiveQuoteButton } from "@/components/cotizaciones/ArchiveQuoteButton"
 import { formatCOP } from "@/lib/utils"
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -72,36 +72,8 @@ export default async function CotizacionDetailPage({ params }: Props) {
 
   const cfg = STATUS_CONFIG[quote.status] ?? STATUS_CONFIG.draft
   const isDraft = quote.status === "draft"
+  const isConverted = quote.status === "converted"
   const hasRubros = rubros.some(r => parseFloat(r.budget_amount) > 0)
-
-  const pdfQuote: QuotePDFData = {
-    quote_number:        quote.quote_number,
-    project_name:        quote.project_name,
-    contact_name:        quote.contact_name,
-    contact_phone:       quote.contact_phone,
-    contact_email:       quote.contact_email,
-    valid_until:         quote.valid_until,
-    created_at:          quote.created_at.toISOString(),
-    discount_percentage: quote.discount_percentage,
-    tax_percentage:      quote.tax_percentage,
-    advance_percentage:  quote.advance_percentage,
-    advance_amount:      quote.advance_amount,
-    total_amount:        quote.total_amount,
-    subtotal_amount:     quote.subtotal_amount,
-  }
-
-  const pdfRubros: RubroPDFData[] = rubros.map(r => ({
-    id:            r.id,
-    name:          r.name,
-    budget_amount: r.budget_amount,
-    active:        true,
-    activities:    (itemsByRubroId.get(r.id) ?? []).map(item => ({
-      name:       item.name,
-      unit_price: item.unit_price,
-    })),
-  }))
-
-  const pdfData = { quote: pdfQuote, rubros: pdfRubros }
 
   return (
     <main className="px-4 pt-6 pb-24 md:px-8 max-w-2xl mx-auto space-y-5">
@@ -116,6 +88,11 @@ export default async function CotizacionDetailPage({ params }: Props) {
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${cfg.className}`}>
               {cfg.label}
             </span>
+            {quote.archived && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-orange-100 text-orange-700">
+                Archivada
+              </span>
+            )}
           </div>
           <h1 className="text-xl font-bold text-foreground mt-1 leading-tight">{quote.project_name}</h1>
         </div>
@@ -129,7 +106,23 @@ export default async function CotizacionDetailPage({ params }: Props) {
                 Editar
               </Link>
             )}
-            <PdfDownloadButton quoteNumber={quote.quote_number} pdfData={pdfData} />
+            {/* PDF button: not shown for converted quotes */}
+            {!isConverted && (
+              <PdfDownloadButton quoteId={params.id} quoteNumber={quote.quote_number} />
+            )}
+            {/* 3-dot menu with archive option */}
+            <div className="relative group mt-0.5">
+              <button
+                type="button"
+                className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-muted-foreground"
+                aria-label="Más opciones"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-border rounded-xl shadow-lg py-1 z-10 hidden group-focus-within:block group-hover:block">
+                <ArchiveQuoteButton quoteId={params.id} archived={quote.archived} />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -301,7 +294,6 @@ export default async function CotizacionDetailPage({ params }: Props) {
         status={quote.status as "draft" | "sent" | "approved" | "rejected" | "converted"}
         hasRubros={hasRubros}
         quoteNumber={quote.quote_number}
-        pdfData={pdfData}
       />
     </main>
   )

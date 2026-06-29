@@ -4,8 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Send, CheckCircle2, FolderPlus, Loader2 } from "lucide-react"
-import { generatePDFBlob, sharePDF } from "@/lib/pdfClient"
-import type { QuotePDFData, RubroPDFData } from "@/lib/pdfClient"
 
 type QuoteStatus = "draft" | "sent" | "approved" | "rejected" | "converted"
 
@@ -14,10 +12,9 @@ interface Props {
   status:      QuoteStatus
   hasRubros:   boolean
   quoteNumber: string
-  pdfData?:    { quote: QuotePDFData; rubros: RubroPDFData[] }
 }
 
-export function QuoteActions({ quoteId, status, hasRubros, quoteNumber, pdfData }: Props) {
+export function QuoteActions({ quoteId, status, hasRubros, quoteNumber }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
 
@@ -37,15 +34,20 @@ export function QuoteActions({ quoteId, status, hasRubros, quoteNumber, pdfData 
         return
       }
 
-      if (action === "enviar" && pdfData) {
-        const fileName = `cotizacion-${quoteNumber.replace(/\//g, "-")}.pdf`
-        try {
-          const blob = await generatePDFBlob(pdfData.quote, pdfData.rubros)
-          await sharePDF(blob, fileName)
-        } catch (pdfErr) {
-          if (!(pdfErr instanceof Error && pdfErr.name === "AbortError")) {
-            console.error("PDF error:", pdfErr)
-          }
+      if (action === "enviar") {
+        const path = `/dashboard/cotizaciones/${quoteId}/vista-previa`
+        const fullUrl = window.location.origin + path
+
+        if (typeof navigator.share === "function") {
+          navigator
+            .share({ title: `Cotización ${quoteNumber}`, url: fullUrl })
+            .catch((err) => {
+              if (!(err instanceof Error && err.name === "AbortError")) {
+                window.open(path, "_blank")
+              }
+            })
+        } else {
+          window.open(path, "_blank")
         }
       }
 

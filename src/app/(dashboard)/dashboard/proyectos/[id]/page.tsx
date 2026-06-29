@@ -26,6 +26,7 @@ import { ProjectStatusSelect } from "@/components/proyectos/ProjectStatusSelect"
 import { ExtrasSection } from "@/components/proyectos/ExtrasSection"
 import { BudgetSection } from "@/components/proyectos/BudgetSection"
 import { RubrosSection } from "@/components/proyectos/RubrosSection"
+import { ArchiveProjectButton } from "@/components/proyectos/ArchiveProjectButton"
 
 export const revalidate = 0
 
@@ -58,6 +59,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       advance_percentage: projects.advance_percentage,
       contingency_percentage: projects.contingency_percentage,
       created_at: projects.created_at,
+      archived: projects.archived,
       client_name: clients.name,
       client_nit: clients.nit,
     })
@@ -189,6 +191,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
                     <Pencil className="w-3.5 h-3.5" />
                   </Link>
                 </Button>
+                <ArchiveProjectButton projectId={project.id} archived={project.archived} />
               </div>
             ) : (
               <Badge variant="outline" className={`shrink-0 ${statusInfo.className}`}>

@@ -1,3 +1,5 @@
+export const maxDuration = 30
+
 import { NextResponse } from "next/server"
 import { createElement, type ReactElement } from "react"
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer"

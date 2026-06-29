@@ -1,9 +1,9 @@
 import { db } from "@/lib/db"
 import { quotes, clients } from "@/lib/db/schema"
 import { requireAuth } from "@/lib/auth"
-import { desc, eq, isNull } from "drizzle-orm"
+import { and, desc, eq, isNull } from "drizzle-orm"
 import Link from "next/link"
-import { Plus, FileText } from "lucide-react"
+import { Plus, FileText, Archive } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCOP } from "@/lib/utils"
 
@@ -15,8 +15,14 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   converted: { label: "Convertida",className: "bg-violet-100 text-violet-700" },
 }
 
-export default async function CotizacionesPage() {
+interface PageProps {
+  searchParams: { ver?: string }
+}
+
+export default async function CotizacionesPage({ searchParams }: PageProps) {
   await requireAuth()
+
+  const showArchived = searchParams.ver === "archivadas"
 
   const rows = await db
     .select({
@@ -28,11 +34,12 @@ export default async function CotizacionesPage() {
       total_amount: quotes.total_amount,
       valid_until:  quotes.valid_until,
       created_at:   quotes.created_at,
+      archived:     quotes.archived,
       client_name:  clients.name,
     })
     .from(quotes)
     .leftJoin(clients, eq(quotes.client_id, clients.id))
-    .where(isNull(quotes.deleted_at))
+    .where(and(isNull(quotes.deleted_at), eq(quotes.archived, showArchived)))
     .orderBy(desc(quotes.created_at))
 
   return (
@@ -40,16 +47,40 @@ export default async function CotizacionesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Cotizaciones</h1>
+          <h1 className="text-xl font-bold text-foreground">
+            {showArchived ? "Cotizaciones archivadas" : "Cotizaciones"}
+          </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{rows.length} cotizaciones</p>
         </div>
-        <Link href="/dashboard/cotizaciones/nueva">
-          <Button size="sm" className="gap-2">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nueva cotización</span>
-            <span className="sm:hidden">Nueva</span>
-          </Button>
-        </Link>
+        {!showArchived && (
+          <Link href="/dashboard/cotizaciones/nueva">
+            <Button size="sm" className="gap-2">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nueva cotización</span>
+              <span className="sm:hidden">Nueva</span>
+            </Button>
+          </Link>
+        )}
+      </div>
+
+      {/* Archive toggle */}
+      <div className="flex items-center gap-2">
+        {showArchived ? (
+          <Link
+            href="/dashboard/cotizaciones"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Volver a cotizaciones activas
+          </Link>
+        ) : (
+          <Link
+            href="/dashboard/cotizaciones?ver=archivadas"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Archive className="w-3.5 h-3.5" />
+            Ver archivadas
+          </Link>
+        )}
       </div>
 
       {/* Empty state */}
@@ -57,14 +88,20 @@ export default async function CotizacionesPage() {
         <div className="section-card flex flex-col items-center py-16 text-center gap-3">
           <FileText className="w-10 h-10 text-muted-foreground/40" />
           <div>
-            <p className="font-medium text-foreground">Sin cotizaciones aún</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Crea tu primera cotización desde un lead ganado o desde cero.
+            <p className="font-medium text-foreground">
+              {showArchived ? "No hay cotizaciones archivadas" : "Sin cotizaciones aún"}
             </p>
+            {!showArchived && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Crea tu primera cotización desde un lead ganado o desde cero.
+              </p>
+            )}
           </div>
-          <Link href="/dashboard/cotizaciones/nueva">
-            <Button size="sm" className="mt-2">Crear cotización</Button>
-          </Link>
+          {!showArchived && (
+            <Link href="/dashboard/cotizaciones/nueva">
+              <Button size="sm" className="mt-2">Crear cotización</Button>
+            </Link>
+          )}
         </div>
       )}
 
@@ -91,7 +128,7 @@ export default async function CotizacionesPage() {
                         {cfg.label}
                       </span>
                       {isExpired && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-700">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-orange-100 text-orange-700">
                           Vencida
                         </span>
                       )}

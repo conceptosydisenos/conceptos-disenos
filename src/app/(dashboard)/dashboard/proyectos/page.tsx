@@ -2,12 +2,12 @@ import { db } from "@/lib/db"
 import { projects, clients } from "@/lib/db/schema"
 import { getCurrentUser } from "@/lib/auth"
 import { Header } from "@/components/layout/Header"
-import { eq, desc, sql } from "drizzle-orm"
+import { and, eq, desc, sql } from "drizzle-orm"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { formatCOP } from "@/lib/utils"
-import { Plus, FolderOpen, ArrowRight } from "lucide-react"
+import { Plus, FolderOpen, ArrowRight, Archive } from "lucide-react"
 
 export const revalidate = 0
 
@@ -22,13 +22,14 @@ const STATUS_MAP = {
 type ProjectStatus = keyof typeof STATUS_MAP
 
 interface PageProps {
-  searchParams: { status?: string }
+  searchParams: { status?: string; ver?: string }
 }
 
 export default async function ProyectosPage({ searchParams }: PageProps) {
   const user = await getCurrentUser()
   const isAdmin = user?.role === "admin"
   const activeFilter = (searchParams.status ?? "all") as string
+  const showArchived = searchParams.ver === "archivados"
 
   const rows = await db
     .select({
@@ -43,9 +44,10 @@ export default async function ProyectosPage({ searchParams }: PageProps) {
     .from(projects)
     .leftJoin(clients, eq(projects.client_id, clients.id))
     .where(
-      activeFilter !== "all"
-        ? eq(projects.status, activeFilter as ProjectStatus)
-        : undefined
+      and(
+        eq(projects.archived, showArchived),
+        activeFilter !== "all" ? eq(projects.status, activeFilter as ProjectStatus) : undefined,
+      )
     )
     .orderBy(desc(projects.created_at))
 
@@ -55,6 +57,7 @@ export default async function ProyectosPage({ searchParams }: PageProps) {
       count: sql<number>`count(*)::int`,
     })
     .from(projects)
+    .where(eq(projects.archived, false))
     .groupBy(projects.status)
 
   const countMap = Object.fromEntries(counts.map((r) => [r.status, r.count]))
@@ -70,13 +73,13 @@ export default async function ProyectosPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <Header title="Proyectos" />
+      <Header title={showArchived ? "Proyectos archivados" : "Proyectos"} />
 
       <div className="px-4 md:px-6 py-6 space-y-5">
         {/* Top bar */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex overflow-x-auto gap-1 pb-1 -mb-1 scrollbar-none">
-            {filters.map((f) => (
+            {!showArchived && filters.map((f) => (
               <Link
                 key={f.key}
                 href={`/dashboard/proyectos${f.key !== "all" ? `?status=${f.key}` : ""}`}
@@ -95,13 +98,33 @@ export default async function ProyectosPage({ searchParams }: PageProps) {
               </Link>
             ))}
           </div>
-          {isAdmin && (
+          {isAdmin && !showArchived && (
             <Button asChild size="sm" className="shrink-0">
               <Link href="/dashboard/proyectos/nuevo">
                 <Plus className="w-4 h-4 mr-1" />
                 <span className="hidden sm:inline">Nuevo</span>
               </Link>
             </Button>
+          )}
+        </div>
+
+        {/* Archive toggle */}
+        <div>
+          {showArchived ? (
+            <Link
+              href="/dashboard/proyectos"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← Volver a proyectos activos
+            </Link>
+          ) : (
+            <Link
+              href="/dashboard/proyectos?ver=archivados"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Archive className="w-3.5 h-3.5" />
+              Ver archivados
+            </Link>
           )}
         </div>
 

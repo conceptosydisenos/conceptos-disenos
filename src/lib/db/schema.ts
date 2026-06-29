@@ -148,6 +148,7 @@ export const projects = pgTable("projects", {
     .references(() => users.id)
     .notNull(),
   deleted_at: timestamp("deleted_at", { withTimezone: true }),
+  archived: boolean("archived").notNull().default(false),
   ...timestamps,
 })
 
@@ -510,6 +511,7 @@ export const quotes = pgTable(
     converted_to_project_id: uuid("converted_to_project_id").references(() => projects.id),
     created_by: uuid("created_by").references(() => users.id).notNull(),
     deleted_at: timestamp("deleted_at", { withTimezone: true }),
+    archived: boolean("archived").notNull().default(false),
     ...timestamps,
   },
   (t) => ({
