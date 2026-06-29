@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Archive, ArchiveRestore, Loader2 } from "lucide-react"
+import { Archive, ArchiveRestore } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Props {
   projectId: string
@@ -11,30 +11,33 @@ interface Props {
 
 export function ArchiveProjectButton({ projectId, archived }: Props) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
 
-  async function handleClick() {
-    setLoading(true)
-    try {
-      await fetch(`/api/proyectos/${projectId}/archivar`, { method: "POST" })
-      router.push("/dashboard/proyectos")
-    } finally {
-      setLoading(false)
-    }
+  function handleClick() {
+    router.push("/dashboard/proyectos")
+
+    fetch(`/api/proyectos/${projectId}/archivar`, { method: "POST" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error del servidor")
+      })
+      .catch(() => {
+        toast({
+          title: "No se pudo archivar",
+          description: "El proyecto no se archivó. Intenta de nuevo.",
+          variant: "destructive",
+        })
+      })
   }
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      disabled={loading}
-      className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
+      className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
     >
-      {loading
-        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-        : archived
-          ? <ArchiveRestore className="w-3.5 h-3.5" />
-          : <Archive className="w-3.5 h-3.5" />}
+      {archived
+        ? <ArchiveRestore className="w-3.5 h-3.5" />
+        : <Archive className="w-3.5 h-3.5" />}
       {archived ? "Desarchivar" : "Archivar"}
     </button>
   )
