@@ -21,7 +21,7 @@
 @media print {
   html, body {
     height: auto;
-    padding: 20mm;
+    padding: 12mm;
   }
   .vp-wrap {
     background: white;
@@ -33,5 +33,13 @@
     box-shadow: none;
     border-radius: 0;
     padding: 0;
+  }
+  .condiciones-pago {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .vp-footer {
+    page-break-before: avoid;
+    break-before: avoid;
   }
 }

@@ -195,7 +195,7 @@ export default async function VistaPrevia({ params }: Props) {
         </div>
 
         {/* Payment conditions */}
-        <div style={{ padding: "16px", backgroundColor: "#F0FDF9", borderRadius: "8px", border: `1px solid ${GREEN}40`, marginBottom: "20px" }}>
+        <div className="condiciones-pago" style={{ padding: "16px", backgroundColor: "#F0FDF9", borderRadius: "8px", border: `1px solid ${GREEN}40`, marginBottom: "20px" }}>
           <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "12px" }}>
             Condiciones de pago
           </div>
@@ -219,7 +219,7 @@ export default async function VistaPrevia({ params }: Props) {
         </div>
 
         {/* Footer */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #E5E7EB", paddingTop: "12px", fontSize: "10px", color: "#9CA3AF" }}>
+        <div className="vp-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #E5E7EB", paddingTop: "12px", fontSize: "10px", color: "#9CA3AF" }}>
           <span>Válida hasta el {fmtDate(quote.valid_until)}</span>
           <span>{quote.quote_number}</span>
         </div>

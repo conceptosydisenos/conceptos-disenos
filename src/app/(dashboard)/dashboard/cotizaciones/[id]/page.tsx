@@ -7,7 +7,6 @@ import Link from "next/link"
 import { ChevronLeft, ExternalLink, MoreHorizontal } from "lucide-react"
 import { QuoteItemsEditor } from "@/components/cotizaciones/QuoteItemsEditor"
 import { QuoteActions } from "@/components/cotizaciones/QuoteActions"
-import { PdfDownloadButton } from "@/components/cotizaciones/PdfDownloadButton"
 import { ArchiveQuoteButton } from "@/components/cotizaciones/ArchiveQuoteButton"
 import { formatCOP } from "@/lib/utils"
 
@@ -72,7 +71,6 @@ export default async function CotizacionDetailPage({ params }: Props) {
 
   const cfg = STATUS_CONFIG[quote.status] ?? STATUS_CONFIG.draft
   const isDraft = quote.status === "draft"
-  const showPdfButton = isDraft || quote.status === "approved"
   const hasRubros = rubros.some(r => parseFloat(r.budget_amount) > 0)
 
   return (
@@ -105,10 +103,6 @@ export default async function CotizacionDetailPage({ params }: Props) {
               >
                 Editar
               </Link>
-            )}
-            {/* PDF button: only for draft and approved */}
-            {showPdfButton && (
-              <PdfDownloadButton quoteId={params.id} />
             )}
             {/* 3-dot menu with archive option */}
             <div className="relative group mt-0.5">
