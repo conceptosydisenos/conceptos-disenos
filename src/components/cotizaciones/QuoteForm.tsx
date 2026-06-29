@@ -70,14 +70,45 @@ export function QuoteForm({ initialValues }: Props) {
 
       const quoteId = json.data.id
 
-      // 2. Patch rubros with user-entered amounts (if any rubros were touched)
+      // 2. Patch rubros, then save activities linked to their IDs
       if (rubros.length > 0) {
-        await fetch(`/api/cotizaciones/${quoteId}/rubros`, {
+        const rubrosRes = await fetch(`/api/cotizaciones/${quoteId}/rubros`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ rubros }),
         })
-        // Non-blocking: rubros are non-critical for the redirect to succeed
+        const rubrosJson = await rubrosRes.json() as {
+          success: boolean
+          data?: Array<{ id: string; rubro_type: string }>
+        }
+
+        if (rubrosJson.success && rubrosJson.data) {
+          const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.rubro_type, r.id]))
+
+          const activitySaves = rubros.flatMap((rubro) => {
+            if (!rubro.active) return []
+            const rubroId = rubroIdMap.get(rubro.rubro_type)
+            if (!rubroId) return []
+            return (rubro.activities ?? [])
+              .filter((a) => a.description.trim().length > 0 && a.amount > 0)
+              .map((a) =>
+                fetch(`/api/cotizaciones/${quoteId}/items`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    category:       rubro.rubro_type,
+                    name:           a.description.trim(),
+                    unit:           "Global",
+                    quantity:       1,
+                    unit_price:     a.amount,
+                    quote_rubro_id: rubroId,
+                  }),
+                })
+              )
+          })
+
+          await Promise.all(activitySaves)
+        }
       }
 
       router.push(`/dashboard/cotizaciones/${quoteId}`)

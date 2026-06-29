@@ -5,24 +5,31 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Plus, Trash2 } from "lucide-react"
 
+export interface ActivityRow {
+  description: string
+  amount: number
+}
+
 export interface RubroRow {
   rubro_type: string
   name: string
   budget_amount: number
   active: boolean
   sort_order: number
+  activities: ActivityRow[]
+  autoCalculate: boolean
 }
 
 const DEFAULT_RUBROS: RubroRow[] = [
-  { rubro_type: "mano_obra",    name: "Mano de obra",          budget_amount: 0, active: true, sort_order: 0 },
-  { rubro_type: "materiales",   name: "Materiales",             budget_amount: 0, active: true, sort_order: 1 },
-  { rubro_type: "escombros",    name: "Escombros",              budget_amount: 0, active: true, sort_order: 2 },
-  { rubro_type: "acarreos",     name: "Acarreos / Transportes", budget_amount: 0, active: true, sort_order: 3 },
-  { rubro_type: "demoliciones", name: "Demoliciones",           budget_amount: 0, active: true, sort_order: 4 },
-  { rubro_type: "carpinteria",  name: "Carpintería",            budget_amount: 0, active: true, sort_order: 5 },
-  { rubro_type: "vidreria",     name: "Vidriería / Ventanería", budget_amount: 0, active: true, sort_order: 6 },
-  { rubro_type: "adicionales",  name: "Adicionales",            budget_amount: 0, active: true, sort_order: 7 },
-  { rubro_type: "imprevistos",  name: "Imprevistos",            budget_amount: 0, active: true, sort_order: 8 },
+  { rubro_type: "mano_obra",    name: "Mano de obra",          budget_amount: 0, active: true, sort_order: 0, activities: [], autoCalculate: false },
+  { rubro_type: "materiales",   name: "Materiales",             budget_amount: 0, active: true, sort_order: 1, activities: [], autoCalculate: false },
+  { rubro_type: "escombros",    name: "Escombros",              budget_amount: 0, active: true, sort_order: 2, activities: [], autoCalculate: false },
+  { rubro_type: "acarreos",     name: "Acarreos / Transportes", budget_amount: 0, active: true, sort_order: 3, activities: [], autoCalculate: false },
+  { rubro_type: "demoliciones", name: "Demoliciones",           budget_amount: 0, active: true, sort_order: 4, activities: [], autoCalculate: false },
+  { rubro_type: "carpinteria",  name: "Carpintería",            budget_amount: 0, active: true, sort_order: 5, activities: [], autoCalculate: false },
+  { rubro_type: "vidreria",     name: "Vidriería / Ventanería", budget_amount: 0, active: true, sort_order: 6, activities: [], autoCalculate: false },
+  { rubro_type: "adicionales",  name: "Adicionales",            budget_amount: 0, active: true, sort_order: 7, activities: [], autoCalculate: false },
+  { rubro_type: "imprevistos",  name: "Imprevistos",            budget_amount: 0, active: true, sort_order: 8, activities: [], autoCalculate: false },
 ]
 
 const COP = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 })
@@ -53,16 +60,60 @@ function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 }
 
 export function QuoteRubrosEditor({ value, onChange }: Props) {
-  const [rubros, setRubros] = useState<RubroRow[]>(value ?? DEFAULT_RUBROS)
+  const [rubros, setRubros] = useState<RubroRow[]>(() => {
+    if (!value) return DEFAULT_RUBROS
+    return value.map((r) => ({
+      ...r,
+      activities: r.activities ?? [],
+      autoCalculate: r.autoCalculate ?? false,
+    }))
+  })
 
-  const update = (idx: number, patch: Partial<RubroRow>) => {
-    const next = rubros.map((r, i) => (i === idx ? { ...r, ...patch } : r))
+  const commit = (next: RubroRow[]) => {
     setRubros(next)
     onChange(next)
   }
 
+  const update = (idx: number, patch: Partial<RubroRow>) => {
+    commit(rubros.map((r, i) => (i === idx ? { ...r, ...patch } : r)))
+  }
+
+  const addActivity = (rubroIdx: number) => {
+    const next = rubros[rubroIdx].activities.concat({ description: "", amount: 0 })
+    update(rubroIdx, { activities: next })
+  }
+
+  const updateActivity = (rubroIdx: number, actIdx: number, patch: Partial<ActivityRow>) => {
+    const rubro = rubros[rubroIdx]
+    const nextActivities = rubro.activities.map((a, i) => (i === actIdx ? { ...a, ...patch } : a))
+    const extra: Partial<RubroRow> = { activities: nextActivities }
+    if (rubro.autoCalculate) {
+      extra.budget_amount = nextActivities.reduce((s, a) => s + a.amount, 0)
+    }
+    update(rubroIdx, extra)
+  }
+
+  const removeActivity = (rubroIdx: number, actIdx: number) => {
+    const rubro = rubros[rubroIdx]
+    const nextActivities = rubro.activities.filter((_, i) => i !== actIdx)
+    const extra: Partial<RubroRow> = { activities: nextActivities }
+    if (rubro.autoCalculate) {
+      extra.budget_amount = nextActivities.reduce((s, a) => s + a.amount, 0)
+    }
+    update(rubroIdx, extra)
+  }
+
+  const toggleAutoCalculate = (rubroIdx: number, checked: boolean) => {
+    const rubro = rubros[rubroIdx]
+    const extra: Partial<RubroRow> = { autoCalculate: checked }
+    if (checked) {
+      extra.budget_amount = rubro.activities.reduce((s, a) => s + a.amount, 0)
+    }
+    update(rubroIdx, extra)
+  }
+
   const addPersonalizado = () => {
-    const next = [
+    commit([
       ...rubros,
       {
         rubro_type:    "personalizado",
@@ -70,16 +121,14 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
         budget_amount: 0,
         active:        true,
         sort_order:    rubros.length,
+        activities:    [],
+        autoCalculate: false,
       },
-    ]
-    setRubros(next)
-    onChange(next)
+    ])
   }
 
   const remove = (idx: number) => {
-    const next = rubros.filter((_, i) => i !== idx)
-    setRubros(next)
-    onChange(next)
+    commit(rubros.filter((_, i) => i !== idx))
   }
 
   const total = rubros.filter((r) => r.active).reduce((s, r) => s + r.budget_amount, 0)
@@ -93,7 +142,7 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
             rubro.active ? "bg-card" : "bg-muted/30 opacity-60"
           }`}
         >
-          {/* Row header: toggle + name */}
+          {/* Toggle + name */}
           <div className="flex items-center gap-2.5">
             <Switch
               checked={rubro.active}
@@ -117,6 +166,18 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
             )}
           </div>
 
+          {/* autoCalculate toggle */}
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rubro.autoCalculate}
+              onChange={(e) => toggleAutoCalculate(idx, e.target.checked)}
+              disabled={!rubro.active}
+              className="rounded border-border text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5"
+            />
+            <span className="text-[11px] text-muted-foreground">Calcular total automáticamente</span>
+          </label>
+
           {/* Budget amount */}
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
@@ -131,11 +192,60 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
                 const digits = e.target.value.replace(/\D/g, "")
                 update(idx, { budget_amount: parseInt(digits, 10) || 0 })
               }}
-              placeholder="0"
+              placeholder={rubro.autoCalculate ? COP.format(rubro.budget_amount) : "0"}
               className="pl-7 tabular-nums h-9"
               disabled={!rubro.active}
+              readOnly={rubro.autoCalculate}
             />
           </div>
+
+          {/* Activities */}
+          {rubro.active && (
+            <div className="space-y-2 pt-0.5">
+              {rubro.activities.map((act, aIdx) => (
+                <div key={aIdx} className="flex items-center gap-2">
+                  <Input
+                    value={act.description}
+                    onChange={(e) => updateActivity(idx, aIdx, { description: e.target.value })}
+                    placeholder="Descripción de la actividad"
+                    className="h-9 text-sm flex-1 min-w-0"
+                  />
+                  <div className="relative w-28 shrink-0">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                      $
+                    </span>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={act.amount === 0 ? "" : String(act.amount)}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "")
+                        updateActivity(idx, aIdx, { amount: parseInt(digits, 10) || 0 })
+                      }}
+                      placeholder="0"
+                      className="pl-6 tabular-nums h-9 text-sm"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeActivity(idx, aIdx)}
+                    className="text-muted-foreground hover:text-destructive transition-colors p-1.5 shrink-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addActivity(idx)}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Agregar actividad
+              </button>
+            </div>
+          )}
         </div>
       ))}
 

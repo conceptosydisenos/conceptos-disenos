@@ -58,6 +58,15 @@ export default async function CotizacionDetailPage({ params }: Props) {
     .where(and(eq(quote_rubros.quote_id, params.id), eq(quote_rubros.active, true)))
     .orderBy(asc(quote_rubros.sort_order))
 
+  const itemsByRubroId = new Map<string, typeof items>()
+  for (const item of items) {
+    if (item.quote_rubro_id) {
+      const existing = itemsByRubroId.get(item.quote_rubro_id) ?? []
+      existing.push(item)
+      itemsByRubroId.set(item.quote_rubro_id, existing)
+    }
+  }
+
   const cfg = STATUS_CONFIG[quote.status] ?? STATUS_CONFIG.draft
   const isDraft = quote.status === "draft"
   const hasRubros = rubros.some(r => parseFloat(r.budget_amount) > 0)
@@ -152,13 +161,28 @@ export default async function CotizacionDetailPage({ params }: Props) {
             <div className="divide-y divide-border">
               {rubros.map((r) => {
                 const amount = parseFloat(r.budget_amount)
+                const rubroItems = itemsByRubroId.get(r.id) ?? []
                 return (
-                  <div key={r.id} className="flex items-center justify-between py-2.5">
-                    <span className="text-sm">{r.name}</span>
-                    {amount > 0
-                      ? <span className="text-sm font-medium tabular-nums">{formatCOP(amount)}</span>
-                      : <span className="text-sm text-muted-foreground">Sin presupuesto asignado</span>
-                    }
+                  <div key={r.id} className="py-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{r.name}</span>
+                      {amount > 0
+                        ? <span className="text-sm font-medium tabular-nums">{formatCOP(amount)}</span>
+                        : <span className="text-sm text-muted-foreground">Sin presupuesto asignado</span>
+                      }
+                    </div>
+                    {rubroItems.length > 0 && (
+                      <div className="mt-1 pl-3 space-y-0.5">
+                        {rubroItems.map((item) => (
+                          <div key={item.id} className="flex items-start justify-between gap-2">
+                            <span className="text-xs text-muted-foreground leading-snug">• {item.name}</span>
+                            <span className="text-xs tabular-nums text-muted-foreground shrink-0">
+                              {formatCOP(parseFloat(item.unit_price))}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )
               })}

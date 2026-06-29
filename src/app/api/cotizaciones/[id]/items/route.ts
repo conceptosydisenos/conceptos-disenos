@@ -7,13 +7,18 @@ import { z } from "zod"
 import { calculateQuoteTotals } from "@/lib/calculations"
 
 const schema = z.object({
-  category:   z.enum(["materiales", "mano_obra", "equipos", "imprevistos", "otro"]),
-  name:       z.string().min(1).max(300),
-  description:z.string().max(500).optional(),
-  unit:       z.string().min(1).max(20),
-  quantity:   z.coerce.number().positive(),
-  unit_price: z.coerce.number().positive(),
-  sort_order: z.coerce.number().default(0),
+  category:      z.enum([
+    "mano_obra", "materiales", "escombros", "acarreos", "demoliciones",
+    "carpinteria", "vidreria", "adicionales", "imprevistos",
+    "equipos", "otro", "personalizado",
+  ]),
+  name:          z.string().min(1).max(300),
+  description:   z.string().max(500).optional(),
+  unit:          z.string().min(1).max(20),
+  quantity:      z.coerce.number().positive(),
+  unit_price:    z.coerce.number().positive(),
+  sort_order:    z.coerce.number().default(0),
+  quote_rubro_id: z.string().uuid().optional().nullable(),
 })
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -42,15 +47,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const [item] = await db
       .insert(quote_items)
       .values({
-        quote_id:    params.id,
-        category:    d.category,
-        name:        d.name,
-        description: d.description ?? null,
-        unit:        d.unit,
-        quantity:    String(d.quantity),
-        unit_price:  String(d.unit_price),
-        total_price: String(total_price),
-        sort_order:  d.sort_order,
+        quote_id:       params.id,
+        category:       d.category,
+        name:           d.name,
+        description:    d.description ?? null,
+        unit:           d.unit,
+        quantity:       String(d.quantity),
+        unit_price:     String(d.unit_price),
+        total_price:    String(total_price),
+        sort_order:     d.sort_order,
+        quote_rubro_id: d.quote_rubro_id ?? null,
       })
       .returning()
 
