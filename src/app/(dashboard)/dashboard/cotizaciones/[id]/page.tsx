@@ -7,6 +7,7 @@ import Link from "next/link"
 import { ChevronLeft, ExternalLink } from "lucide-react"
 import { QuoteItemsEditor } from "@/components/cotizaciones/QuoteItemsEditor"
 import { QuoteActions } from "@/components/cotizaciones/QuoteActions"
+import { PdfDownloadButton } from "@/components/cotizaciones/PdfDownloadButton"
 import { formatCOP } from "@/lib/utils"
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -88,13 +89,18 @@ export default async function CotizacionDetailPage({ params }: Props) {
           </div>
           <h1 className="text-xl font-bold text-foreground mt-1 leading-tight">{quote.project_name}</h1>
         </div>
-        {isAdmin && isDraft && (
-          <Link
-            href={`/dashboard/cotizaciones/${params.id}/editar`}
-            className="shrink-0 mt-0.5 text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors font-medium whitespace-nowrap"
-          >
-            Editar
-          </Link>
+        {isAdmin && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {isDraft && (
+              <Link
+                href={`/dashboard/cotizaciones/${params.id}/editar`}
+                className="mt-0.5 text-xs px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors font-medium whitespace-nowrap"
+              >
+                Editar
+              </Link>
+            )}
+            <PdfDownloadButton quoteId={params.id} quoteNumber={quote.quote_number} />
+          </div>
         )}
       </div>
 
