@@ -14,10 +14,19 @@ interface InitialValues {
   contact_phone?: string
   contact_email?: string
   lead_id?: string
+  description?: string
+  valid_until?: string
+  discount_percentage?: number
+  tax_percentage?: number
+  advance_percentage?: number
+  contingency_percentage?: number
+  rubros?: RubroRow[]
 }
 
 interface Props {
   initialValues?: InitialValues
+  quoteId?: string
+  existingActivityItemIds?: string[]
 }
 
 function defaultValidUntil() {
@@ -26,11 +35,12 @@ function defaultValidUntil() {
   return d.toISOString().split("T")[0]
 }
 
-export function QuoteForm({ initialValues }: Props) {
+export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: Props) {
   const router = useRouter()
+  const isEditMode = Boolean(quoteId)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [rubros, setRubros] = useState<RubroRow[]>([])
+  const [rubros, setRubros] = useState<RubroRow[]>(initialValues?.rubros ?? [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -50,69 +60,135 @@ export function QuoteForm({ initialValues }: Props) {
       discount_percentage:    Number(data.get("discount_percentage") ?? 0),
       tax_percentage:         Number(data.get("tax_percentage") ?? 0),
       advance_percentage:     Number(data.get("advance_percentage") ?? 50),
-      contingency_percentage: Number(data.get("contingency_percentage") ?? 15),
+      contingency_percentage: isEditMode
+        ? (initialValues?.contingency_percentage ?? 15)
+        : Number(data.get("contingency_percentage") ?? 15),
     }
 
     try {
-      // 1. Create the quote (and default rubros via seedQuoteRubros)
-      const res = await fetch("/api/cotizaciones", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      const json = await res.json() as { success: boolean; error?: string; data?: { id: string } }
-
-      if (!json.success || !json.data) {
-        setError(json.error ?? "Error al guardar")
-        setSaving(false)
-        return
-      }
-
-      const quoteId = json.data.id
-
-      // 2. Patch rubros, then save activities linked to their IDs
-      if (rubros.length > 0) {
-        const rubrosRes = await fetch(`/api/cotizaciones/${quoteId}/rubros`, {
+      if (isEditMode && quoteId) {
+        // ── Edit mode ──────────────────────────────────────────
+        const res = await fetch(`/api/cotizaciones/${quoteId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rubros }),
+          body: JSON.stringify(body),
         })
-        const rubrosJson = await rubrosRes.json() as {
-          success: boolean
-          data?: Array<{ id: string; rubro_type: string }>
+        const json = await res.json() as { success: boolean; error?: string }
+        if (!json.success) {
+          setError(json.error ?? "Error al guardar")
+          setSaving(false)
+          return
         }
 
-        if (rubrosJson.success && rubrosJson.data) {
-          const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.rubro_type, r.id]))
-
-          const activitySaves = rubros.flatMap((rubro) => {
-            if (!rubro.active) return []
-            const rubroId = rubroIdMap.get(rubro.rubro_type)
-            if (!rubroId) return []
-            return (rubro.activities ?? [])
-              .filter((a) => a.description.trim().length > 0 && a.amount > 0)
-              .map((a) =>
-                fetch(`/api/cotizaciones/${quoteId}/items`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    category:       rubro.rubro_type,
-                    name:           a.description.trim(),
-                    unit:           "Global",
-                    quantity:       1,
-                    unit_price:     a.amount,
-                    quote_rubro_id: rubroId,
-                  }),
-                })
-              )
+        if (rubros.length > 0) {
+          const rubrosRes = await fetch(`/api/cotizaciones/${quoteId}/rubros`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rubros }),
           })
+          const rubrosJson = await rubrosRes.json() as {
+            success: boolean
+            data?: Array<{ id: string; rubro_type: string }>
+          }
 
-          await Promise.all(activitySaves)
+          if (rubrosJson.success && rubrosJson.data) {
+            // Delete existing activity items before re-saving
+            if (existingActivityItemIds && existingActivityItemIds.length > 0) {
+              await Promise.all(
+                existingActivityItemIds.map((itemId) =>
+                  fetch(`/api/cotizaciones/${quoteId}/items/${itemId}`, { method: "DELETE" })
+                )
+              )
+            }
+
+            // Save new activity items
+            const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.rubro_type, r.id]))
+            const activitySaves = rubros.flatMap((rubro) => {
+              if (!rubro.active) return []
+              const rubroId = rubroIdMap.get(rubro.rubro_type)
+              if (!rubroId) return []
+              return (rubro.activities ?? [])
+                .filter((a) => a.description.trim().length > 0 && a.amount > 0)
+                .map((a) =>
+                  fetch(`/api/cotizaciones/${quoteId}/items`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      category:       rubro.rubro_type,
+                      name:           a.description.trim(),
+                      unit:           "Global",
+                      quantity:       1,
+                      unit_price:     a.amount,
+                      quote_rubro_id: rubroId,
+                    }),
+                  })
+                )
+            })
+            await Promise.all(activitySaves)
+          }
         }
-      }
 
-      router.push(`/dashboard/cotizaciones/${quoteId}`)
-      router.refresh()
+        router.push(`/dashboard/cotizaciones/${quoteId}`)
+        router.refresh()
+      } else {
+        // ── Create mode ────────────────────────────────────────
+        const res = await fetch("/api/cotizaciones", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+        const json = await res.json() as { success: boolean; error?: string; data?: { id: string } }
+
+        if (!json.success || !json.data) {
+          setError(json.error ?? "Error al guardar")
+          setSaving(false)
+          return
+        }
+
+        const newQuoteId = json.data.id
+
+        // Save rubros + activities
+        if (rubros.length > 0) {
+          const rubrosRes = await fetch(`/api/cotizaciones/${newQuoteId}/rubros`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rubros }),
+          })
+          const rubrosJson = await rubrosRes.json() as {
+            success: boolean
+            data?: Array<{ id: string; rubro_type: string }>
+          }
+
+          if (rubrosJson.success && rubrosJson.data) {
+            const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.rubro_type, r.id]))
+            const activitySaves = rubros.flatMap((rubro) => {
+              if (!rubro.active) return []
+              const rubroId = rubroIdMap.get(rubro.rubro_type)
+              if (!rubroId) return []
+              return (rubro.activities ?? [])
+                .filter((a) => a.description.trim().length > 0 && a.amount > 0)
+                .map((a) =>
+                  fetch(`/api/cotizaciones/${newQuoteId}/items`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      category:       rubro.rubro_type,
+                      name:           a.description.trim(),
+                      unit:           "Global",
+                      quantity:       1,
+                      unit_price:     a.amount,
+                      quote_rubro_id: rubroId,
+                    }),
+                  })
+                )
+            })
+            await Promise.all(activitySaves)
+          }
+        }
+
+        router.push(`/dashboard/cotizaciones/${newQuoteId}`)
+        router.refresh()
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error de conexión")
       setSaving(false)
@@ -143,6 +219,7 @@ export function QuoteForm({ initialValues }: Props) {
             id="description"
             name="description"
             rows={3}
+            defaultValue={initialValues?.description ?? ""}
             placeholder="Alcance del trabajo, materiales incluidos, exclusiones..."
             className="mt-1.5 resize-none"
           />
@@ -200,7 +277,7 @@ export function QuoteForm({ initialValues }: Props) {
               name="valid_until"
               type="date"
               required
-              defaultValue={defaultValidUntil()}
+              defaultValue={initialValues?.valid_until ?? defaultValidUntil()}
               className="mt-1.5"
             />
           </div>
@@ -213,7 +290,7 @@ export function QuoteForm({ initialValues }: Props) {
               min={0}
               max={100}
               step={1}
-              defaultValue={50}
+              defaultValue={initialValues?.advance_percentage ?? 50}
               className="mt-1.5 tabular-nums"
               inputMode="numeric"
             />
@@ -229,7 +306,7 @@ export function QuoteForm({ initialValues }: Props) {
               min={0}
               max={100}
               step={0.1}
-              defaultValue={0}
+              defaultValue={initialValues?.discount_percentage ?? 0}
               className="mt-1.5 tabular-nums"
               inputMode="decimal"
             />
@@ -243,7 +320,7 @@ export function QuoteForm({ initialValues }: Props) {
               min={0}
               max={100}
               step={1}
-              defaultValue={0}
+              defaultValue={initialValues?.tax_percentage ?? 0}
               placeholder="Ej. 19"
               className="mt-1.5 tabular-nums"
               inputMode="numeric"
@@ -262,7 +339,7 @@ export function QuoteForm({ initialValues }: Props) {
             Activa los rubros que aplican y asigna el presupuesto estimado para cada uno.
           </p>
         </div>
-        <QuoteRubrosEditor onChange={setRubros} />
+        <QuoteRubrosEditor value={initialValues?.rubros} onChange={setRubros} />
       </div>
 
       {error && (
@@ -274,7 +351,10 @@ export function QuoteForm({ initialValues }: Props) {
           Cancelar
         </Button>
         <Button type="submit" disabled={saving} className="flex-1">
-          {saving ? "Creando..." : "Crear cotización"}
+          {saving
+            ? (isEditMode ? "Guardando..." : "Creando...")
+            : (isEditMode ? "Guardar cambios" : "Crear cotización")
+          }
         </Button>
       </div>
     </form>

@@ -22,7 +22,8 @@ interface Props {
 }
 
 export default async function CotizacionDetailPage({ params }: Props) {
-  await requireAuth()
+  const user = await requireAuth()
+  const isAdmin = user.role === "admin"
 
   const [quote] = await db
     .select()
@@ -87,6 +88,14 @@ export default async function CotizacionDetailPage({ params }: Props) {
           </div>
           <h1 className="text-xl font-bold text-foreground mt-1 leading-tight">{quote.project_name}</h1>
         </div>
+        {isAdmin && isDraft && (
+          <Link
+            href={`/dashboard/cotizaciones/${params.id}/editar`}
+            className="shrink-0 mt-0.5 text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors font-medium whitespace-nowrap"
+          >
+            Editar
+          </Link>
+        )}
       </div>
 
       {/* Converted → link to project */}
