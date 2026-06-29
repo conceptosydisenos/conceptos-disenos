@@ -13,7 +13,15 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
+@page {
+  margin: 0;
+  size: letter;
+}
+
 @media print {
+  body {
+    padding: 20mm;
+  }
   .vp-wrap {
     background: white;
     padding: 0;
@@ -22,10 +30,6 @@
     max-width: 100%;
     box-shadow: none;
     border-radius: 0;
-    padding: 20px;
-  }
-  @page {
-    margin: 15mm 12mm;
-    size: letter;
+    padding: 0;
   }
 }
