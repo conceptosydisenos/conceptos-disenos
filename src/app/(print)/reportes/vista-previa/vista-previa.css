@@ -1,0 +1,77 @@
+.rp-wrap {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 24px 16px 120px;
+}
+
+.rp-card {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.rp-section {
+  margin-bottom: 24px;
+}
+
+.rp-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6B7280;
+  margin-bottom: 10px;
+}
+
+.rp-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #E5E7EB;
+  padding-top: 12px;
+  margin-top: 8px;
+  font-size: 10px;
+  color: #9CA3AF;
+}
+
+@page {
+  margin: 12mm;
+  size: letter;
+}
+
+@page :blank {
+  display: none;
+}
+
+@media print {
+  html, body {
+    height: auto !important;
+    min-height: unset !important;
+  }
+  .rp-wrap {
+    background: white;
+    min-height: unset;
+    padding: 0;
+  }
+  .rp-card {
+    max-width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+  .rp-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .rp-footer {
+    break-before: avoid;
+    page-break-before: avoid;
+  }
+  table {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

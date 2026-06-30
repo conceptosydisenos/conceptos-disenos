@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/Header"
 import { Button } from "@/components/ui/button"
-import { Download, X } from "lucide-react"
+import { Download } from "lucide-react"
 import { formatCOP } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import type { ReportData, ProjectReport, CashFlowMonth } from "@/app/api/reportes/route"
@@ -322,7 +322,6 @@ export default function ReportesPage() {
   const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showExportMsg, setShowExportMsg] = useState(false)
 
   useEffect(() => {
     fetch("/api/reportes")
@@ -351,26 +350,12 @@ export default function ReportesPage() {
           variant="outline"
           size="sm"
           className="gap-2"
-          onClick={() => setShowExportMsg(true)}
+          onClick={() => window.open("/reportes/vista-previa", "_blank")}
         >
           <Download className="w-3.5 h-3.5" />
-          Exportar
+          Exportar PDF
         </Button>
       </div>
-
-      {showExportMsg && (
-        <div className="mx-4 md:mx-6 mt-3 max-w-4xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 flex items-center justify-between gap-3">
-          <p className="text-xs text-amber-800">
-            Próximamente: exportación a PDF disponible en la siguiente actualización.
-          </p>
-          <button
-            onClick={() => setShowExportMsg(false)}
-            className="text-amber-500 hover:text-amber-700 shrink-0"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
 
       <div className="px-4 md:px-6 py-6 space-y-8 max-w-4xl">
         {loading && (
