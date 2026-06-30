@@ -43,38 +43,20 @@ function GoogleSignInButton() {
   )
 }
 
-// ─── Architectural SVG background ─────────────────────────────────────────────
-// Rendered as position:absolute inside a relative min-h-screen wrapper.
-// Stroke colors are set directly (~#B8B8B8–#CCCCCC) so they're visible without
-// relying on opacity groups (opacity compounds on faint colors and makes them
-// invisible against near-white backgrounds).
+// ─── Architectural sketch background ──────────────────────────────────────────
+// Minimal blueprint feel: just building outlines + 4-5 floor lines each.
+// No window grids. Single stroke color. Long diagonal composition lines.
 //
-// Left tower:  x 20–206, full viewport height
-// Right block: x 1225–1440, starts at y 290
-// Center zone (x 206–1225) stays clear for the login card.
+// Stroke color #CACACA is directly visible against #FFFFFF without needing
+// opacity hacks — it reads as a very light architectural pencil line.
 //
-// Mobile: with xMidYMid slice, narrow viewports show only the central portion
-// of the viewBox — the side buildings recede off-screen naturally.
+// Left cluster  (x 0–216):  15% of 1440px viewport
+// Right cluster (x 1224–1440): 15% of 1440px viewport
+// Center 70% stays completely empty for the login card.
+//
+// Mobile: xMidYMid slice naturally hides edge buildings on narrow viewports.
 // ──────────────────────────────────────────────────────────────────────────────
 function ArchitecturalBackground() {
-  // Stroke colors — directly visible against #FAFAFA, no group opacity needed.
-  // Range: #B8B8B8 (darker outlines) → #CCCCCC (lightest window grids).
-  const C_OUTLINE = "#B8B8B8"
-  const C_INNER   = "#C4C4C4"
-  const C_FLOOR   = "#C8C8C8"
-  const C_WINDOW  = "#CCCCCC"
-
-  // Left tower
-  const LT_FLOOR_H = 34
-  const LT_FLOORS  = 25
-  const LT_WIN_X   = [34, 92, 150]
-  const LT_MECH    = 5
-
-  // Right building
-  const RB_FLOOR_H = 36
-  const RB_FLOORS  = 17
-  const RB_WIN_X   = [1240, 1290, 1340, 1390]
-
   return (
     <svg
       className="absolute inset-0 w-full h-full pointer-events-none select-none"
@@ -83,126 +65,62 @@ function ArchitecturalBackground() {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      {/* ═══════════════════════════════════════════════
-          LEFT — tall modern glass tower  (x 20–206)
-      ═══════════════════════════════════════════════ */}
-      <g fill="none">
-        {/* Spire */}
-        <line x1="113" y1="0" x2="113" y2="22"
-              stroke={C_OUTLINE} strokeWidth="0.75" />
+      {/*
+        All elements share: fill=none, stroke=#CACACA, strokeWidth=1.
+        Group opacity 0.18 on the whole drawing brings it to the desired
+        "barely there" level while the base color stays visible enough
+        to perceive form. Effective appearance: ~#F8F8F8 ghost on white.
+        For composition lines, strokeWidth drops to 0.5.
+      */}
+      <g fill="none" stroke="#CACACA" strokeWidth="1" opacity="0.65">
 
-        {/* Penthouse crown */}
-        <rect x="52" y="20" width="122" height="40"
-              stroke={C_OUTLINE} strokeWidth="1" />
-        <line x1="52" y1="40" x2="174" y2="40"
-              stroke={C_INNER} strokeWidth="0.5" />
+        {/* ── LEFT cluster ──────────────────────────────────
+            Tower A  (x 15–95):  tall, narrow — full height
+            Building B (x 97–167): lower, beside A           */}
 
-        {/* Main shaft */}
-        <rect x="20" y="60" width="186" height="850"
-              stroke={C_OUTLINE} strokeWidth="1" />
+        {/* Tower A outline */}
+        <rect x="15" y="50" width="80" height="850" />
+        {/* Tower A — 4 floor plates */}
+        <line x1="15" y1="240" x2="95"  y2="240" />
+        <line x1="15" y1="430" x2="95"  y2="430" />
+        <line x1="15" y1="620" x2="95"  y2="620" />
+        <line x1="15" y1="810" x2="95"  y2="810" />
 
-        {/* Curtain wall — vertical column divisions */}
-        <line x1="82"  y1="60" x2="82"  y2="910" stroke={C_INNER} strokeWidth="0.5" />
-        <line x1="144" y1="60" x2="144" y2="910" stroke={C_INNER} strokeWidth="0.5" />
+        {/* Building B outline */}
+        <rect x="97" y="310" width="70" height="590" />
+        {/* Building B — 3 floor plates */}
+        <line x1="97"  y1="435" x2="167" y2="435" />
+        <line x1="97"  y1="560" x2="167" y2="560" />
+        <line x1="97"  y1="685" x2="167" y2="685" />
 
-        {/* Horizontal floor plates */}
-        {Array.from({ length: LT_FLOORS }, (_, i) => (
-          <line
-            key={`lt-fl-${i}`}
-            x1="20" y1={94 + i * LT_FLOOR_H}
-            x2="206" y2={94 + i * LT_FLOOR_H}
-            stroke={C_FLOOR} strokeWidth="0.5"
-          />
-        ))}
+        {/* ── RIGHT cluster ─────────────────────────────────
+            Building C (x 1300–1400): main office block
+            Tower D    (x 1402–1438): thin tower, far right  */}
 
-        {/* Mechanical floor accent — thicker midline, no windows */}
-        <line
-          x1="20"  y1={94 + (LT_MECH - 1) * LT_FLOOR_H + LT_FLOOR_H / 2}
-          x2="206" y2={94 + (LT_MECH - 1) * LT_FLOOR_H + LT_FLOOR_H / 2}
-          stroke={C_INNER} strokeWidth="1.25"
-        />
+        {/* Building C outline */}
+        <rect x="1300" y="260" width="100" height="640" />
+        {/* Building C — 4 floor plates */}
+        <line x1="1300" y1="390" x2="1400" y2="390" />
+        <line x1="1300" y1="520" x2="1400" y2="520" />
+        <line x1="1300" y1="650" x2="1400" y2="650" />
+        <line x1="1300" y1="780" x2="1400" y2="780" />
 
-        {/* Window grid — 3 cols × 24 rows (row LT_MECH skipped) */}
-        {Array.from({ length: LT_FLOORS - 1 }, (_, row) => {
-          if (row === LT_MECH) return null
-          return LT_WIN_X.map((wx) => (
-            <rect
-              key={`lt-w-${row}-${wx}`}
-              x={wx} y={64 + row * LT_FLOOR_H}
-              width="42" height="21"
-              stroke={C_WINDOW} strokeWidth="0.5"
-            />
-          ))
-        })}
+        {/* Tower D outline */}
+        <rect x="1402" y="110" width="36" height="790" />
+        {/* Tower D — 2 floor plates */}
+        <line x1="1402" y1="370" x2="1438" y2="370" />
+        <line x1="1402" y1="630" x2="1438" y2="630" />
 
-        {/* Lobby — double-height windows at ground level */}
-        {LT_WIN_X.map((wx) => (
-          <rect
-            key={`lt-lobby-${wx}`}
-            x={wx}
-            y={64 + (LT_FLOORS - 2) * LT_FLOOR_H}
-            width="42"
-            height={LT_FLOOR_H * 2 - 3}
-            stroke={C_INNER} strokeWidth="0.5"
-          />
-        ))}
-      </g>
+        {/* ── Composition / construction lines ──────────────
+            Two perspective lines converge near the top-center
+            suggesting a shared vanishing point — classic
+            architectural drawing device.
+            A third gentle diagonal crosses the full width
+            like a floor-plane projection line.               */}
+        <line x1="0"    y1="880" x2="716"  y2="0"   strokeWidth="0.5" />
+        <line x1="1440" y1="880" x2="724"  y2="0"   strokeWidth="0.5" />
+        <line x1="0"    y1="520" x2="1440" y2="340"  strokeWidth="0.5" />
 
-      {/* ═══════════════════════════════════════════════
-          RIGHT — contemporary office block  (x 1225–1440)
-      ═══════════════════════════════════════════════ */}
-      <g fill="none">
-        {/* Side annex / wing */}
-        <rect x="1385" y="170" width="55" height="122"
-              stroke={C_OUTLINE} strokeWidth="1" />
-        <line x1="1385" y1="206" x2="1440" y2="206" stroke={C_FLOOR} strokeWidth="0.5" />
-        <line x1="1385" y1="242" x2="1440" y2="242" stroke={C_FLOOR} strokeWidth="0.5" />
-        <rect x="1394" y="178" width="38" height="22" stroke={C_WINDOW} strokeWidth="0.5" />
-        <rect x="1394" y="214" width="38" height="22" stroke={C_WINDOW} strokeWidth="0.5" />
-
-        {/* Main building outline */}
-        <rect x="1225" y="290" width="215" height="620"
-              stroke={C_OUTLINE} strokeWidth="1" />
-
-        {/* Facade — vertical column divisions */}
-        <line x1="1280" y1="290" x2="1280" y2="910" stroke={C_INNER} strokeWidth="0.5" />
-        <line x1="1332" y1="290" x2="1332" y2="910" stroke={C_INNER} strokeWidth="0.5" />
-        <line x1="1384" y1="290" x2="1384" y2="910" stroke={C_INNER} strokeWidth="0.5" />
-
-        {/* Horizontal floor plates */}
-        {Array.from({ length: RB_FLOORS }, (_, i) => (
-          <line
-            key={`rb-fl-${i}`}
-            x1="1225" y1={326 + i * RB_FLOOR_H}
-            x2="1440" y2={326 + i * RB_FLOOR_H}
-            stroke={C_FLOOR} strokeWidth="0.5"
-          />
-        ))}
-
-        {/* Window grid — 4 cols × 16 rows */}
-        {Array.from({ length: RB_FLOORS - 1 }, (_, row) =>
-          RB_WIN_X.map((wx) => (
-            <rect
-              key={`rb-w-${row}-${wx}`}
-              x={wx} y={294 + row * RB_FLOOR_H}
-              width="34" height="22"
-              stroke={C_WINDOW} strokeWidth="0.5"
-            />
-          ))
-        )}
-
-        {/* Spandrel accent at top */}
-        <line x1="1225" y1="308" x2="1440" y2="308" stroke={C_INNER} strokeWidth="0.75" />
-      </g>
-
-      {/* ═══════════════════════════════════════════════
-          Ground perspective lines
-      ═══════════════════════════════════════════════ */}
-      <g fill="none" stroke={C_FLOOR} strokeWidth="0.5">
-        <line x1="206"  y1="910" x2="520" y2="875" />
-        <line x1="206"  y1="910" x2="680" y2="855" />
-        <line x1="1225" y1="910" x2="920" y2="875" />
-        <line x1="1225" y1="910" x2="760" y2="855" />
       </g>
     </svg>
   )
@@ -210,14 +128,10 @@ function ArchitecturalBackground() {
 
 export default function SignInPage() {
   return (
-    // Outer wrapper: relative + explicit background so absolute SVG paints correctly.
-    <div className="relative min-h-screen bg-[#FAFAFA]">
-      {/* SVG background — absolute, behind everything, z-index: auto (below z-10 content) */}
+    <div className="relative min-h-screen bg-white">
       <ArchitecturalBackground />
 
-      {/* Content — relative z-10 keeps it above the SVG in all stacking contexts */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-0 px-6">
-        {/* Hidden SignIn handles the OAuth SSO callback route */}
         <div className="hidden" aria-hidden="true">
           <SignIn />
         </div>
