@@ -65,15 +65,15 @@ export default function SignInPage() {
         }}
       />
 
-      <div className="relative z-10 flex flex-col items-center justify-center w-full px-6">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full px-6">
         <div className="flex flex-col items-center w-full">
-          <div className="mb-2 w-[90vw] sm:w-[520px]">
+          <div className="mb-2">
             <Image
               src="/logo.png"
               alt="Conceptos y Diseños"
               width={520}
               height={260}
-              className="object-contain w-full h-auto"
+              className="w-48 h-auto md:w-72 object-contain"
               priority
             />
           </div>
