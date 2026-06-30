@@ -174,18 +174,18 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       <div className="px-4 md:px-6 py-6 space-y-5 max-w-2xl">
         {/* Header card */}
         <div className="section-card">
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground mb-1">{project.client_name ?? "—"}</p>
-              <h2 className="text-base font-semibold text-foreground">{project.name}</h2>
+          <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 overflow-hidden">
+              <p className="text-xs text-muted-foreground mb-1 truncate">{project.client_name ?? "—"}</p>
+              <h2 className="text-base font-semibold text-foreground break-words">{project.name}</h2>
               {project.description && (
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2 break-words">
                   {project.description}
                 </p>
               )}
             </div>
             {isAdmin ? (
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 flex-wrap sm:shrink-0">
                 <ProjectStatusSelect projectId={project.id} currentStatus={project.status} />
                 <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                   <Link href={`/dashboard/proyectos/${project.id}/editar`} title="Editar proyecto">
@@ -198,7 +198,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
                 )}
               </div>
             ) : (
-              <Badge variant="outline" className={`shrink-0 ${statusInfo.className}`}>
+              <Badge variant="outline" className={`self-start sm:shrink-0 ${statusInfo.className}`}>
                 {statusInfo.label}
               </Badge>
             )}
