@@ -215,11 +215,11 @@ function ClienteCard({
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between gap-3 text-left"
       >
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 overflow-hidden">
           <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 shrink-0">
             <UserRound className="w-4 h-4 text-primary" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 overflow-hidden">
             <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
             {client.nit && (
               <p className="text-xs text-muted-foreground">{client.nit}</p>
@@ -238,21 +238,21 @@ function ClienteCard({
           {/* Contact info */}
           <div className="space-y-2">
             {client.phone && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
                 <Phone className="w-3.5 h-3.5 shrink-0" />
-                <span>{client.phone}</span>
+                <span className="truncate">{client.phone}</span>
               </div>
             )}
             {client.address && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
                 <MapPin className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">{client.address}</span>
               </div>
             )}
             {client.nit && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
                 <Hash className="w-3.5 h-3.5 shrink-0" />
-                <span>{client.nit}</span>
+                <span className="truncate">{client.nit}</span>
               </div>
             )}
             {!client.phone && !client.address && !client.nit && (

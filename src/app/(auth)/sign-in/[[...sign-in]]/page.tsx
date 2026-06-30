@@ -47,14 +47,15 @@ export default function SignInPage() {
   return (
     <div className="relative min-h-screen bg-white">
       {/* Background image — absolute fill, behind all content */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <Image
           src="/login-bg.png"
           alt=""
           fill
-          className="object-cover"
+          className="object-cover object-center"
           priority
           aria-hidden="true"
+          sizes="100vw"
         />
       </div>
 
