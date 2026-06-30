@@ -45,7 +45,7 @@ function GoogleSignInButton() {
 
 export default function SignInPage() {
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+    <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden">
       <Image
         src="/login-bg.png"
         alt=""

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic"
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#1e2d4e]">
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center p-6 bg-[#1e2d4e]">
       <div className="mb-8">
         <Image
           src="/logo.jpg"

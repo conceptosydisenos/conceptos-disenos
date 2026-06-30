@@ -83,7 +83,7 @@ export function Sidebar({ role, userName }: SidebarProps) {
     role === "admin" ? "Administrador" : role === "operative" ? "Campo" : "Contabilidad"
 
   return (
-    <aside className="hidden md:flex flex-col w-[240px] min-h-screen bg-white border-r border-gray-200 shrink-0">
+    <aside className="hidden md:flex flex-col w-[240px] min-h-[100dvh] bg-white border-r border-gray-200 shrink-0">
 
       {/* Brand */}
       <div className="flex items-center gap-3 px-5 h-14 border-b border-gray-100">
