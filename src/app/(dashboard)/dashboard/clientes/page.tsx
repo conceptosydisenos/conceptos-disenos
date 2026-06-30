@@ -54,7 +54,11 @@ export default async function ClientesPage({
           </Link>
         )}
 
-        <ClientesList initialClients={rows} showArchived={showArchived} />
+        <ClientesList
+          key={showArchived ? "archived" : "active"}
+          initialClients={rows}
+          showArchived={showArchived}
+        />
 
         {!showArchived && archivedCount > 0 && (
           <Link
