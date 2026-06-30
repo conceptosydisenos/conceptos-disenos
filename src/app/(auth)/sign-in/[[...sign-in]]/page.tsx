@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useState } from "react"
-import { useSignIn } from "@clerk/nextjs"
+import { useSignIn, SignIn } from "@clerk/nextjs"
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" aria-hidden="true">
@@ -45,18 +45,9 @@ function GoogleSignInButton() {
 
 export default function SignInPage() {
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center bg-white">
+    <div className="relative w-full min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center">
       <div
-        className="absolute inset-0 w-full h-full block md:hidden"
-        style={{
-          backgroundImage: "url('/login-bg-mobile.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
-      <div
-        className="absolute inset-0 w-full h-full hidden md:block"
+        className="absolute inset-0 w-full h-full"
         style={{
           backgroundImage: "url('/login-bg.png')",
           backgroundSize: "cover",
@@ -65,15 +56,19 @@ export default function SignInPage() {
         }}
       />
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full px-6">
+      <div className="relative z-10 flex flex-col items-center justify-center w-full px-6">
+        <div className="hidden" aria-hidden="true">
+          <SignIn />
+        </div>
+
         <div className="flex flex-col items-center w-full">
-          <div className="mb-2">
+          <div className="mb-2 w-[90vw] sm:w-[520px]">
             <Image
               src="/logo.png"
               alt="Conceptos y Diseños"
               width={520}
               height={260}
-              className="w-48 h-auto md:w-72 object-contain"
+              className="object-contain w-full h-auto"
               priority
             />
           </div>
