@@ -72,6 +72,7 @@ export default function SignInPage() {
               width={520}
               height={260}
               className="object-contain w-full h-auto"
+              style={{ mixBlendMode: "multiply" }}
               priority
             />
           </div>
