@@ -67,12 +67,11 @@ export default function SignInPage() {
         <div className="flex flex-col items-center w-full">
           <div className="mb-2 w-[90vw] sm:w-[520px]">
             <Image
-              src="/logo.jpg"
+              src="/logo.png"
               alt="Conceptos y Diseños"
               width={520}
               height={260}
               className="object-contain w-full h-auto"
-              style={{ mixBlendMode: "multiply" }}
               priority
             />
           </div>
