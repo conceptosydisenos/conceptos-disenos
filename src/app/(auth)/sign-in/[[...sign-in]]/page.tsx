@@ -43,94 +43,22 @@ function GoogleSignInButton() {
   )
 }
 
-// ─── Architectural sketch background ──────────────────────────────────────────
-// Minimal blueprint feel: just building outlines + 4-5 floor lines each.
-// No window grids. Single stroke color. Long diagonal composition lines.
-//
-// Stroke color #CACACA is directly visible against #FFFFFF without needing
-// opacity hacks — it reads as a very light architectural pencil line.
-//
-// Left cluster  (x 0–216):  15% of 1440px viewport
-// Right cluster (x 1224–1440): 15% of 1440px viewport
-// Center 70% stays completely empty for the login card.
-//
-// Mobile: xMidYMid slice naturally hides edge buildings on narrow viewports.
-// ──────────────────────────────────────────────────────────────────────────────
-function ArchitecturalBackground() {
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none select-none"
-      viewBox="0 0 1440 900"
-      preserveAspectRatio="xMidYMid slice"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      {/*
-        All elements share: fill=none, stroke=#CACACA, strokeWidth=1.
-        Group opacity 0.18 on the whole drawing brings it to the desired
-        "barely there" level while the base color stays visible enough
-        to perceive form. Effective appearance: ~#F8F8F8 ghost on white.
-        For composition lines, strokeWidth drops to 0.5.
-      */}
-      <g fill="none" stroke="#CACACA" strokeWidth="1" opacity="0.65">
-
-        {/* ── LEFT cluster ──────────────────────────────────
-            Tower A  (x 15–95):  tall, narrow — full height
-            Building B (x 97–167): lower, beside A           */}
-
-        {/* Tower A outline */}
-        <rect x="15" y="50" width="80" height="850" />
-        {/* Tower A — 4 floor plates */}
-        <line x1="15" y1="240" x2="95"  y2="240" />
-        <line x1="15" y1="430" x2="95"  y2="430" />
-        <line x1="15" y1="620" x2="95"  y2="620" />
-        <line x1="15" y1="810" x2="95"  y2="810" />
-
-        {/* Building B outline */}
-        <rect x="97" y="310" width="70" height="590" />
-        {/* Building B — 3 floor plates */}
-        <line x1="97"  y1="435" x2="167" y2="435" />
-        <line x1="97"  y1="560" x2="167" y2="560" />
-        <line x1="97"  y1="685" x2="167" y2="685" />
-
-        {/* ── RIGHT cluster ─────────────────────────────────
-            Building C (x 1300–1400): main office block
-            Tower D    (x 1402–1438): thin tower, far right  */}
-
-        {/* Building C outline */}
-        <rect x="1300" y="260" width="100" height="640" />
-        {/* Building C — 4 floor plates */}
-        <line x1="1300" y1="390" x2="1400" y2="390" />
-        <line x1="1300" y1="520" x2="1400" y2="520" />
-        <line x1="1300" y1="650" x2="1400" y2="650" />
-        <line x1="1300" y1="780" x2="1400" y2="780" />
-
-        {/* Tower D outline */}
-        <rect x="1402" y="110" width="36" height="790" />
-        {/* Tower D — 2 floor plates */}
-        <line x1="1402" y1="370" x2="1438" y2="370" />
-        <line x1="1402" y1="630" x2="1438" y2="630" />
-
-        {/* ── Composition / construction lines ──────────────
-            Two perspective lines converge near the top-center
-            suggesting a shared vanishing point — classic
-            architectural drawing device.
-            A third gentle diagonal crosses the full width
-            like a floor-plane projection line.               */}
-        <line x1="0"    y1="880" x2="716"  y2="0"   strokeWidth="0.5" />
-        <line x1="1440" y1="880" x2="724"  y2="0"   strokeWidth="0.5" />
-        <line x1="0"    y1="520" x2="1440" y2="340"  strokeWidth="0.5" />
-
-      </g>
-    </svg>
-  )
-}
-
 export default function SignInPage() {
   return (
     <div className="relative min-h-screen bg-white">
-      <ArchitecturalBackground />
+      {/* Background image — absolute fill, behind all content */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Image
+          src="/login-bg.png"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+          aria-hidden="true"
+        />
+      </div>
 
+      {/* Content — z-10, always above background */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-0 px-6">
         <div className="hidden" aria-hidden="true">
           <SignIn />
