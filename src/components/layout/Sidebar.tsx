@@ -89,7 +89,7 @@ export function Sidebar({ role, userName }: SidebarProps) {
       <div className="flex items-center gap-3 px-5 h-14 border-b border-gray-100">
         <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
           <Image
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Conceptos y Diseños"
             width={36}
             height={36}
