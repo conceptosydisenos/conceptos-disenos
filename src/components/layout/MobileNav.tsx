@@ -43,14 +43,14 @@ export function MobileNav({ role }: MobileNavProps) {
               className="flex flex-col items-center justify-end gap-1 flex-1 pb-2 pt-1"
             >
               {primary ? (
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500 shadow-lg -mt-5">
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#2D9B6F] shadow-lg -mt-5">
                   <Icon className="w-5 h-5 text-white" />
                 </div>
               ) : (
                 <Icon
                   className={cn(
                     "w-5 h-5 transition-colors",
-                    active ? "text-[hsl(var(--primary))]" : "text-muted-foreground"
+                    active ? "text-[#2D9B6F]" : "text-gray-400"
                   )}
                 />
               )}
@@ -58,10 +58,10 @@ export function MobileNav({ role }: MobileNavProps) {
                 className={cn(
                   "text-[10px] font-medium leading-none",
                   primary
-                    ? "text-emerald-500"
+                    ? "text-[#2D9B6F]"
                     : active
-                    ? "text-[hsl(var(--primary))]"
-                    : "text-muted-foreground"
+                    ? "text-[#2D9B6F]"
+                    : "text-gray-400"
                 )}
               >
                 {label}

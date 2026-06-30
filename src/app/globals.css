@@ -5,30 +5,31 @@
 @layer base {
   :root {
     /* ── Brand Tokens ─────────────────────────────────────────
-       Primary:   Navy    #1e3a5f → hsl(214, 52%, 25%)
+       Primary:   Emerald #2D9B6F → hsl(156, 55%, 39%)
        Accent:    Emerald #2D9B6F → hsl(156, 55%, 39%)
-       Background: Slate-50 #f8fafc → hsl(210, 40%, 98%)
+       Background: #F9FAFB        → hsl(220, 14%, 98%)
     ─────────────────────────────────────────────────────────── */
 
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 220 14% 98%;
+    --foreground: 224 71% 4%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 224 71% 4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 224 71% 4%;
 
-    --primary: 214 52% 25%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary = Emerald #2D9B6F — buttons, CTAs */
+    --primary: 156 55% 39%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 220 9% 95%;
+    --secondary-foreground: 220 9% 20%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 9% 95%;
+    --muted-foreground: 220 9% 46%;
 
-    /* Accent = Emerald — used for badges, active states, CTAs */
+    /* Accent = same Emerald */
     --accent: 156 55% 39%;
     --accent-foreground: 0 0% 100%;
 
@@ -41,17 +42,17 @@
     --warning: 38 92% 50%;
     --warning-foreground: 222 47% 11%;
 
-    --border: 213 27% 84%;
-    --input: 213 27% 84%;
-    --ring: 214 52% 25%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 156 55% 39%;
     --radius: 0.5rem;
 
-    /* Sidebar */
-    --sidebar-bg: 214 52% 20%;
-    --sidebar-text: 210 40% 90%;
-    --sidebar-active: 214 52% 32%;
-    --sidebar-hover: 214 52% 28%;
-    --sidebar-border: 214 40% 30%;
+    /* Sidebar — light theme */
+    --sidebar-bg: 0 0% 100%;
+    --sidebar-text: 217 19% 27%;
+    --sidebar-active: 152 100% 97%;
+    --sidebar-hover: 220 9% 97%;
+    --sidebar-border: 220 13% 91%;
   }
 
   * {
@@ -139,7 +140,8 @@
 
   /* ── Section card ──────────────────────────────────────────── */
   .section-card {
-    @apply bg-card rounded-xl border border-border p-6 shadow-sm;
+    @apply bg-card rounded-xl border border-border p-6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 }
 

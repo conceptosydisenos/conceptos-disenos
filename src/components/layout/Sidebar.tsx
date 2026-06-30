@@ -83,10 +83,11 @@ export function Sidebar({ role, userName }: SidebarProps) {
     role === "admin" ? "Administrador" : role === "operative" ? "Campo" : "Contabilidad"
 
   return (
-    <aside className="hidden md:flex flex-col w-[240px] min-h-screen bg-[hsl(var(--sidebar-bg))] shrink-0">
+    <aside className="hidden md:flex flex-col w-[240px] min-h-screen bg-white border-r border-gray-200 shrink-0">
+
       {/* Brand */}
-      <div className="flex items-center gap-3 px-5 h-14 border-b border-white/10">
-        <div className="w-9 h-9 rounded-lg bg-white shrink-0 overflow-hidden flex items-center justify-center">
+      <div className="flex items-center gap-3 px-5 h-14 border-b border-gray-100">
+        <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
           <Image
             src="/logo.jpg"
             alt="Conceptos y Diseños"
@@ -96,7 +97,7 @@ export function Sidebar({ role, userName }: SidebarProps) {
           />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-white leading-tight truncate">
+          <p className="text-sm font-bold text-gray-900 leading-tight truncate">
             Conceptos y Diseños
           </p>
         </div>
@@ -113,12 +114,15 @@ export function Sidebar({ role, userName }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 active
-                  ? "bg-white/15 text-white"
-                  : "text-white/60 hover:text-white hover:bg-white/8"
+                  ? "bg-[#F0FDF9] text-[#2D9B6F]"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
               )}
             >
               <Icon
-                className={cn("w-4 h-4 shrink-0", active ? "text-emerald-400" : "text-white/40")}
+                className={cn(
+                  "w-4 h-4 shrink-0",
+                  active ? "text-[#2D9B6F]" : "text-gray-400"
+                )}
               />
               {label}
             </Link>
@@ -128,7 +132,7 @@ export function Sidebar({ role, userName }: SidebarProps) {
         {role === "admin" && (
           <>
             <div className="pt-5 pb-2 px-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                 Comercial
               </p>
             </div>
@@ -137,21 +141,21 @@ export function Sidebar({ role, userName }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive("/dashboard/seguimiento")
-                  ? "bg-white/15 text-white"
-                  : "text-white/60 hover:text-white hover:bg-white/8"
+                  ? "bg-[#F0FDF9] text-[#2D9B6F]"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
               )}
             >
               <Activity
                 className={cn(
                   "w-4 h-4 shrink-0",
-                  isActive("/dashboard/seguimiento") ? "text-emerald-400" : "text-white/40"
+                  isActive("/dashboard/seguimiento") ? "text-[#2D9B6F]" : "text-gray-400"
                 )}
               />
               Seguimiento
             </Link>
 
             <div className="pt-5 pb-2 px-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                 Administración
               </p>
             </div>
@@ -165,14 +169,14 @@ export function Sidebar({ role, userName }: SidebarProps) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     active
-                      ? "bg-white/15 text-white"
-                      : "text-white/60 hover:text-white hover:bg-white/8"
+                      ? "bg-[#F0FDF9] text-[#2D9B6F]"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   )}
                 >
                   <Icon
                     className={cn(
                       "w-4 h-4 shrink-0",
-                      active ? "text-emerald-400" : "text-white/40"
+                      active ? "text-[#2D9B6F]" : "text-gray-400"
                     )}
                   />
                   <span className="flex-1">{label}</span>
@@ -189,7 +193,7 @@ export function Sidebar({ role, userName }: SidebarProps) {
       </nav>
 
       {/* User profile */}
-      <div className="px-3 py-3 border-t border-white/10">
+      <div className="px-3 py-3 border-t border-gray-100">
         <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
           {clerkUser?.imageUrl ? (
             <Image
@@ -197,20 +201,20 @@ export function Sidebar({ role, userName }: SidebarProps) {
               alt={userName}
               width={32}
               height={32}
-              className="rounded-full object-cover ring-1 ring-white/30 shrink-0"
+              className="rounded-full object-cover ring-1 ring-gray-200 shrink-0"
             />
           ) : (
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15 ring-1 ring-white/30 text-xs font-bold text-white shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-xs font-bold text-gray-600 shrink-0">
               {initials}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-white truncate">{userName}</p>
-            <p className="text-xs text-white/45">{roleLabel}</p>
+            <p className="text-sm font-medium text-gray-700 truncate">{userName}</p>
+            <p className="text-xs text-gray-400">{roleLabel}</p>
           </div>
           <button
             onClick={() => signOut({ redirectUrl: "/sign-in" })}
-            className="p-1 text-white/40 hover:text-white/80 transition-colors"
+            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
             title="Cerrar sesión"
           >
             <LogOut className="w-3.5 h-3.5" />
