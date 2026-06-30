@@ -53,7 +53,7 @@ export default function RootLayout({
       }}
     >
       <html lang="es" suppressHydrationWarning>
-        <body className={`${inter.variable} font-sans antialiased`}>
+        <body className={`${inter.variable} font-sans antialiased overflow-x-hidden`}>
           {children}
         </body>
       </html>
