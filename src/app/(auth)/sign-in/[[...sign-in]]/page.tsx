@@ -45,15 +45,15 @@ function GoogleSignInButton() {
 
 export default function SignInPage() {
   return (
-    <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden">
-      <Image
-        src="/login-bg.png"
-        alt=""
-        fill
-        className="absolute inset-0 object-cover object-center pointer-events-none"
-        priority
-        aria-hidden="true"
-        sizes="100vw"
+    <div className="relative w-full min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center">
+      <div
+        className="absolute inset-0 w-full h-full"
+        style={{
+          backgroundImage: "url('/login-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }}
       />
 
       <div className="relative z-10 flex flex-col items-center justify-center w-full px-6">
