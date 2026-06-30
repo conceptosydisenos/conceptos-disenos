@@ -8,7 +8,7 @@ import {
 import { requireAuth } from "@/lib/auth"
 import { count, sum, eq, and, gte, lte } from "drizzle-orm"
 import Link from "next/link"
-import { Plus, Phone, AlertCircle, HardHat, CreditCard } from "lucide-react"
+import { Plus, Phone, AlertCircle, HardHat, CreditCard, Archive } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const revalidate = 0
@@ -37,8 +37,14 @@ function getQuinceRange(): { start: string; end: string } {
   }
 }
 
-export default async function ContratistasPage() {
+export default async function ContratistasPage({
+  searchParams,
+}: {
+  searchParams: { ver?: string }
+}) {
   await requireAuth()
+
+  const showArchived = searchParams.ver === "archivados"
 
   const allContractors = await db
     .select({
@@ -49,6 +55,7 @@ export default async function ContratistasPage() {
       contractor_type: contractors.contractor_type,
     })
     .from(contractors)
+    .where(eq(contractors.archived, showArchived))
     .orderBy(contractors.name)
 
   const enriched = await Promise.all(
@@ -70,6 +77,11 @@ export default async function ContratistasPage() {
       }
     })
   )
+
+  const [{ total: archivedCount }] = await db
+    .select({ total: count() })
+    .from(contractors)
+    .where(eq(contractors.archived, true))
 
   const quinceRange = getQuinceRange()
 
@@ -110,16 +122,31 @@ export default async function ContratistasPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground">Contratistas</h1>
-          <p className="text-sm text-muted-foreground">{enriched.length} registrados</p>
+          <p className="text-sm text-muted-foreground">
+            {showArchived
+              ? `${enriched.length} archivado${enriched.length !== 1 ? "s" : ""}`
+              : `${enriched.length} activo${enriched.length !== 1 ? "s" : ""}`}
+          </p>
         </div>
-        <Button asChild size="sm">
-          <Link href="/dashboard/contratistas/nuevo">
-            <Plus className="w-4 h-4 mr-1" /> Nuevo
-          </Link>
-        </Button>
+        {!showArchived && (
+          <Button asChild size="sm">
+            <Link href="/dashboard/contratistas/nuevo">
+              <Plus className="w-4 h-4 mr-1" /> Nuevo
+            </Link>
+          </Button>
+        )}
       </div>
 
-      {pendingQuincenales.length > 0 && (
+      {showArchived && (
+        <Link
+          href="/dashboard/contratistas"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          ← Volver a contratistas activos
+        </Link>
+      )}
+
+      {!showArchived && pendingQuincenales.length > 0 && (
         <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-emerald-700 shrink-0" />
@@ -152,7 +179,9 @@ export default async function ContratistasPage() {
         {enriched.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             <HardHat className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">Sin contratistas registrados.</p>
+            <p className="text-sm">
+              {showArchived ? "Sin contratistas archivados." : "Sin contratistas registrados."}
+            </p>
           </div>
         )}
         {enriched.map((c) => (
@@ -182,6 +211,16 @@ export default async function ContratistasPage() {
           </Link>
         ))}
       </section>
+
+      {!showArchived && archivedCount > 0 && (
+        <Link
+          href="/dashboard/contratistas?ver=archivados"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Archive className="w-4 h-4" />
+          Ver {archivedCount} archivado{archivedCount !== 1 ? "s" : ""}
+        </Link>
+      )}
     </main>
   )
 }

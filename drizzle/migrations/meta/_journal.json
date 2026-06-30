@@ -50,6 +50,13 @@
       "when": 1782761008220,
       "tag": "0006_huge_toad",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1782782283087,
+      "tag": "0007_rare_wonder_man",
+      "breakpoints": true
     }
   ]
 }

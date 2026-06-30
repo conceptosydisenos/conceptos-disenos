@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { db } from "@/lib/db"
 import { contractors, project_contractors, contractor_payments, projects } from "@/lib/db/schema"
-import { requireAuth } from "@/lib/auth"
-import { eq, and, sum, desc } from "drizzle-orm"
+import { requireAuth, requireRole } from "@/lib/auth"
+import { eq, and, sum, desc, count } from "drizzle-orm"
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -110,6 +110,7 @@ const updateSchema = z.object({
   nit: z.string().optional(),
   bank_name: z.string().optional(),
   bank_account: z.string().optional(),
+  archived: z.boolean().optional(),
 })
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -129,6 +130,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         ...(data.nit !== undefined && { nit: data.nit || null }),
         ...(data.bank_name !== undefined && { bank_name: data.bank_name || null }),
         ...(data.bank_account !== undefined && { bank_account: data.bank_account || null }),
+        ...(data.archived !== undefined && { archived: data.archived }),
         updated_at: new Date(),
       })
       .where(eq(contractors.id, params.id))
@@ -140,5 +142,44 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ success: false, error: err.errors[0].message }, { status: 400 })
     }
     return NextResponse.json({ success: false, error: "Error al actualizar contratista" }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    await requireRole(["admin"])
+
+    const [contractor] = await db
+      .select({ archived: contractors.archived })
+      .from(contractors)
+      .where(eq(contractors.id, params.id))
+
+    if (!contractor) return NextResponse.json({ success: false, error: "No encontrado" }, { status: 404 })
+    if (!contractor.archived) {
+      return NextResponse.json(
+        { success: false, error: "Debes archivar el contratista antes de eliminarlo" },
+        { status: 400 }
+      )
+    }
+
+    const [{ total: projectTotal }] = await db
+      .select({ total: count() })
+      .from(project_contractors)
+      .where(eq(project_contractors.contractor_id, params.id))
+
+    if (projectTotal > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Este contratista tiene ${projectTotal} proyecto${projectTotal !== 1 ? "s" : ""} vinculado${projectTotal !== 1 ? "s" : ""}. Desvincula los proyectos primero.`,
+        },
+        { status: 400 }
+      )
+    }
+
+    await db.delete(contractors).where(eq(contractors.id, params.id))
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ success: false, error: "Error al eliminar contratista" }, { status: 500 })
   }
 }

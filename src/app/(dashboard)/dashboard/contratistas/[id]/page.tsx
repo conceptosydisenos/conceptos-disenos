@@ -17,6 +17,7 @@ import {
   CreditCard,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ContratistaActions } from "@/components/contratistas/ContratistaActions"
 
 export const revalidate = 0
 
@@ -116,17 +117,26 @@ export default async function ContratistaDetailPage({ params }: { params: { id: 
   return (
     <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/dashboard/contratistas" className="text-muted-foreground hover:text-foreground transition-colors">
+      <div className="flex items-start gap-3">
+        <Link href="/dashboard/contratistas" className="text-muted-foreground hover:text-foreground transition-colors mt-0.5">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-bold truncate">{contractor.name}</h1>
-          <p className="text-sm text-muted-foreground">{contractor.specialty}</p>
+        <div className="flex-1 min-w-0 space-y-2">
+          <div>
+            <h1 className="text-lg font-bold truncate">{contractor.name}</h1>
+            <p className="text-sm text-muted-foreground">{contractor.specialty}</p>
+          </div>
+          <ContratistaActions contractorId={contractor.id} isArchived={contractor.archived} />
         </div>
       </div>
 
-      {/* Contact — tap-to-call for David in field */}
+      {contractor.archived && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Este contratista está archivado. Desarchivar para volver a asignar pagos o proyectos.
+        </div>
+      )}
+
+      {/* Contact */}
       <section className="rounded-2xl border bg-card p-4 space-y-3">
         {contractor.phone && (
           <a
@@ -160,7 +170,7 @@ export default async function ContratistaDetailPage({ params }: { params: { id: 
         )}
       </section>
 
-      {/* Financial summary — big numbers for quick field view */}
+      {/* Financial summary */}
       <section className="grid grid-cols-3 gap-3">
         <div className="rounded-xl border bg-card p-3 space-y-0.5">
           <p className="text-xs text-muted-foreground">Contratado</p>
@@ -179,18 +189,20 @@ export default async function ContratistaDetailPage({ params }: { params: { id: 
       </section>
 
       {/* Actions */}
-      <div className="flex gap-2">
-        <Button asChild size="sm" className="flex-1">
-          <Link href={`/dashboard/contratistas/${params.id}/nuevo-pago`}>
-            <Plus className="w-4 h-4 mr-1" /> Registrar pago
-          </Link>
-        </Button>
-        <Button asChild size="sm" variant="outline">
-          <Link href={`/dashboard/contratistas/${params.id}/vincular`}>
-            <Link2 className="w-4 h-4 mr-1" /> Vincular proyecto
-          </Link>
-        </Button>
-      </div>
+      {!contractor.archived && (
+        <div className="flex gap-2">
+          <Button asChild size="sm" className="flex-1">
+            <Link href={`/dashboard/contratistas/${params.id}/nuevo-pago`}>
+              <Plus className="w-4 h-4 mr-1" /> Registrar pago
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/dashboard/contratistas/${params.id}/vincular`}>
+              <Link2 className="w-4 h-4 mr-1" /> Vincular proyecto
+            </Link>
+          </Button>
+        </div>
+      )}
 
       {/* Projects */}
       <section className="space-y-3">

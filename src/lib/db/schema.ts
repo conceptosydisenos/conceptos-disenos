@@ -115,6 +115,7 @@ export const clients = pgTable("clients", {
   phone: text("phone"),
   address: text("address"),
   nit: text("nit"),
+  archived: boolean("archived").notNull().default(false),
   ...timestamps,
 })
 
@@ -205,6 +206,7 @@ export const contractors = pgTable("contractors", {
   nit: text("nit"),
   bank_account: text("bank_account"),
   bank_name: text("bank_name"),
+  archived: boolean("archived").notNull().default(false),
   ...timestamps,
 })
 

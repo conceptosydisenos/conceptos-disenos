@@ -8,7 +8,21 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Plus, UserRound, Phone, MapPin, Hash, ChevronDown, ChevronUp } from "lucide-react"
+import {
+  Loader2,
+  Plus,
+  UserRound,
+  Phone,
+  MapPin,
+  Hash,
+  ChevronDown,
+  ChevronUp,
+  Pencil,
+  Archive,
+  ArchiveRestore,
+  Trash2,
+} from "lucide-react"
+import Link from "next/link"
 
 const schema = z.object({
   name: z.string().min(2, "Mínimo 2 caracteres"),
@@ -27,13 +41,15 @@ interface Cliente {
   phone: string | null
   address: string | null
   email: string | null
+  archived: boolean
 }
 
 interface ClientesListProps {
   initialClients: Cliente[]
+  showArchived: boolean
 }
 
-export function ClientesList({ initialClients }: ClientesListProps) {
+export function ClientesList({ initialClients, showArchived }: ClientesListProps) {
   const router = useRouter()
   const [clients, setClients] = useState<Cliente[]>(initialClients)
   const [showForm, setShowForm] = useState(false)
@@ -54,11 +70,33 @@ export function ClientesList({ initialClients }: ClientesListProps) {
     })
     const json = await res.json()
     if (json.success) {
-      setClients((prev) => [...prev, json.data].sort((a, b) => a.name.localeCompare(b.name)))
+      setClients((prev) =>
+        [...prev, { ...json.data, archived: false }].sort((a, b) => a.name.localeCompare(b.name))
+      )
       reset()
       setShowForm(false)
       router.refresh()
     }
+  }
+
+  const handleArchive = (id: string, archive: boolean) => {
+    setClients((prev) => prev.filter((c) => c.id !== id))
+    fetch(`/api/clientes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ archived: archive }),
+    })
+  }
+
+  const handleDelete = (id: string) => {
+    if (!confirm("¿Eliminar este cliente permanentemente? Esta acción no se puede deshacer.")) return
+    setClients((prev) => prev.filter((c) => c.id !== id))
+    fetch(`/api/clientes/${id}`, { method: "DELETE" }).then((r) => r.json()).then((json) => {
+      if (!json.success) {
+        alert(json.error ?? "Error al eliminar. Recarga la página.")
+        router.refresh()
+      }
+    })
   }
 
   const toggleForm = () => {
@@ -70,16 +108,18 @@ export function ClientesList({ initialClients }: ClientesListProps) {
 
   return (
     <div className="space-y-4">
-      {/* Add button */}
-      <Button onClick={toggleForm} variant={showForm ? "outline" : "default"} className="w-full sm:w-auto">
-        {showForm ? (
-          <><ChevronUp className="w-4 h-4 mr-2" />Cancelar</>
-        ) : (
-          <><Plus className="w-4 h-4 mr-2" />Nuevo cliente</>
-        )}
-      </Button>
+      {/* Add button — only in active view */}
+      {!showArchived && (
+        <Button onClick={toggleForm} variant={showForm ? "outline" : "default"} className="w-full sm:w-auto">
+          {showForm ? (
+            <><ChevronUp className="w-4 h-4 mr-2" />Cancelar</>
+          ) : (
+            <><Plus className="w-4 h-4 mr-2" />Nuevo cliente</>
+          )}
+        </Button>
+      )}
 
-      {/* Form */}
+      {/* Create form */}
       {showForm && (
         <div ref={formRef} className="section-card space-y-4">
           <h2 className="text-sm font-semibold">Registrar cliente</h2>
@@ -134,13 +174,22 @@ export function ClientesList({ initialClients }: ClientesListProps) {
       {clients.length === 0 ? (
         <div className="section-card text-center py-12 space-y-2">
           <UserRound className="w-8 h-8 text-muted-foreground/30 mx-auto" />
-          <p className="text-sm text-muted-foreground">No hay clientes registrados</p>
-          <p className="text-xs text-muted-foreground">Agrega el primero con el botón de arriba</p>
+          <p className="text-sm text-muted-foreground">
+            {showArchived ? "No hay clientes archivados" : "No hay clientes registrados"}
+          </p>
+          {!showArchived && (
+            <p className="text-xs text-muted-foreground">Agrega el primero con el botón de arriba</p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
           {clients.map((c) => (
-            <ClienteCard key={c.id} client={c} />
+            <ClienteCard
+              key={c.id}
+              client={c}
+              onArchive={handleArchive}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}
@@ -148,7 +197,15 @@ export function ClientesList({ initialClients }: ClientesListProps) {
   )
 }
 
-function ClienteCard({ client }: { client: Cliente }) {
+function ClienteCard({
+  client,
+  onArchive,
+  onDelete,
+}: {
+  client: Cliente
+  onArchive: (id: string, archive: boolean) => void
+  onDelete: (id: string) => void
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -169,32 +226,73 @@ function ClienteCard({ client }: { client: Cliente }) {
             )}
           </div>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
+        {open ? (
+          <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+        )}
       </button>
 
       {open && (
-        <div className="mt-3 pt-3 border-t space-y-2">
-          {client.phone && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Phone className="w-3.5 h-3.5 shrink-0" />
-              <span>{client.phone}</span>
-            </div>
-          )}
-          {client.address && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{client.address}</span>
-            </div>
-          )}
-          {client.nit && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Hash className="w-3.5 h-3.5 shrink-0" />
-              <span>{client.nit}</span>
-            </div>
-          )}
-          {!client.phone && !client.address && !client.nit && (
-            <p className="text-xs text-muted-foreground italic">Sin información adicional</p>
-          )}
+        <div className="mt-3 pt-3 border-t space-y-3">
+          {/* Contact info */}
+          <div className="space-y-2">
+            {client.phone && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Phone className="w-3.5 h-3.5 shrink-0" />
+                <span>{client.phone}</span>
+              </div>
+            )}
+            {client.address && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{client.address}</span>
+              </div>
+            )}
+            {client.nit && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Hash className="w-3.5 h-3.5 shrink-0" />
+                <span>{client.nit}</span>
+              </div>
+            )}
+            {!client.phone && !client.address && !client.nit && (
+              <p className="text-xs text-muted-foreground italic">Sin información adicional</p>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-1">
+            {!client.archived && (
+              <Link
+                href={`/dashboard/clientes/${client.id}/editar`}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium text-foreground hover:bg-muted transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Editar
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => onArchive(client.id, !client.archived)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              {client.archived ? (
+                <><ArchiveRestore className="w-3.5 h-3.5" />Desarchivar</>
+              ) : (
+                <><Archive className="w-3.5 h-3.5" />Archivar</>
+              )}
+            </button>
+            {client.archived && (
+              <button
+                type="button"
+                onClick={() => onDelete(client.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-destructive/30 text-xs font-medium text-destructive hover:bg-destructive/5 transition-colors ml-auto"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Eliminar
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
