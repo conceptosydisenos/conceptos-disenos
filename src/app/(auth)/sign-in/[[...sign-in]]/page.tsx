@@ -45,7 +45,7 @@ function GoogleSignInButton() {
 
 export default function SignInPage() {
   return (
-    <div className="relative w-full min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center">
+    <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center bg-white">
       <div
         className="absolute inset-0 w-full h-full"
         style={{
