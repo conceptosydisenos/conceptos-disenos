@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useState } from "react"
-import { useSignIn, SignIn } from "@clerk/nextjs"
+import { useSignIn } from "@clerk/nextjs"
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" aria-hidden="true">
@@ -66,10 +66,6 @@ export default function SignInPage() {
       />
 
       <div className="relative z-10 flex flex-col items-center justify-center w-full px-6">
-        <div className="hidden" aria-hidden="true">
-          <SignIn />
-        </div>
-
         <div className="flex flex-col items-center w-full">
           <div className="mb-2 w-[90vw] sm:w-[520px]">
             <Image

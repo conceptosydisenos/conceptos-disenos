@@ -220,3 +220,8 @@
     }
   }
 }
+
+/* ── TEMPORARY DIAGNOSTIC — remove after identifying overflow culprit ── */
+* {
+  outline: 1px solid red !important;
+}
