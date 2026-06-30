@@ -50,7 +50,7 @@ export default function SignInPage() {
         src="/login-bg.png"
         alt=""
         fill
-        className="object-cover object-center pointer-events-none"
+        className="absolute inset-0 object-cover object-center pointer-events-none"
         priority
         aria-hidden="true"
         sizes="100vw"
