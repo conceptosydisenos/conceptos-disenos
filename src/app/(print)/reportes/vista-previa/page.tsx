@@ -219,7 +219,7 @@ export default async function ReportesVistaPrevia() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `2.5px solid ${NAVY}`, paddingBottom: "16px", marginBottom: "22px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.jpg" alt="Logo" width={64} height={64} style={{ objectFit: "contain" }} />
+            <img src="/logo.jpg" alt="Logo" width={80} height={80} style={{ objectFit: "contain" }} />
             <div>
               <div style={{ fontSize: "15px", fontWeight: "700", color: NAVY }}>Conceptos y Diseños</div>
               <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "2px" }}>Arquitectura &amp; Remodelación</div>

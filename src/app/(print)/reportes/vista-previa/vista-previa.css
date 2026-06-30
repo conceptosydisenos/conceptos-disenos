@@ -38,7 +38,7 @@
 }
 
 @page {
-  margin: 12mm;
+  margin: 0;
   size: letter;
 }
 
@@ -50,6 +50,7 @@
   html, body {
     height: auto !important;
     min-height: unset !important;
+    padding: 12mm;
   }
   .rp-wrap {
     background: white;
