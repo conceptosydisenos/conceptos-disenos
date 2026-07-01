@@ -47,7 +47,16 @@ export default function SignInPage() {
   return (
     <div className="relative w-full min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center">
       <div
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full block md:hidden"
+        style={{
+          backgroundImage: "url('/login-bg-mobile.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      <div
+        className="absolute inset-0 w-full h-full hidden md:block"
         style={{
           backgroundImage: "url('/login-bg.png')",
           backgroundSize: "cover",
