@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth"
 import { and, asc, eq, isNull } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, ExternalLink, MoreHorizontal } from "lucide-react"
+import { ChevronLeft, ExternalLink, FileText, MoreHorizontal } from "lucide-react"
 import { QuoteItemsEditor } from "@/components/cotizaciones/QuoteItemsEditor"
 import { QuoteActions } from "@/components/cotizaciones/QuoteActions"
 import { ArchiveQuoteButton } from "@/components/cotizaciones/ArchiveQuoteButton"
@@ -97,6 +97,16 @@ export default async function CotizacionDetailPage({ params }: Props) {
         </div>
         {isAdmin && (
           <div className="flex items-center gap-1.5 shrink-0">
+            <Link
+              href={`/cotizaciones/${params.id}/vista-previa`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-0.5 p-1.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-muted-foreground"
+              aria-label="Ver cotización PDF"
+              title="Ver cotización"
+            >
+              <FileText className="w-4 h-4" />
+            </Link>
             {isDraft && (
               <Link
                 href={`/dashboard/cotizaciones/${params.id}/editar`}
