@@ -88,7 +88,7 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
           })
           const rubrosJson = await rubrosRes.json() as {
             success: boolean
-            data?: Array<{ id: string; rubro_type: string }>
+            data?: Array<{ id: string; rubro_type: string; sort_order: number }>
           }
 
           if (rubrosJson.success && rubrosJson.data) {
@@ -101,11 +101,12 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
               )
             }
 
-            // Save new activity items
-            const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.rubro_type, r.id]))
+            // Map by sort_order (not rubro_type) so multiple "personalizado"
+            // rubros each resolve to their correct DB id.
+            const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.sort_order, r.id]))
             const activitySaves = rubros.flatMap((rubro) => {
               if (!rubro.active) return []
-              const rubroId = rubroIdMap.get(rubro.rubro_type)
+              const rubroId = rubroIdMap.get(rubro.sort_order)
               if (!rubroId) return []
               return (rubro.activities ?? [])
                 .filter((a) => a.description.trim().length > 0 && a.amount > 0)
@@ -156,14 +157,14 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
           })
           const rubrosJson = await rubrosRes.json() as {
             success: boolean
-            data?: Array<{ id: string; rubro_type: string }>
+            data?: Array<{ id: string; rubro_type: string; sort_order: number }>
           }
 
           if (rubrosJson.success && rubrosJson.data) {
-            const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.rubro_type, r.id]))
+            const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.sort_order, r.id]))
             const activitySaves = rubros.flatMap((rubro) => {
               if (!rubro.active) return []
-              const rubroId = rubroIdMap.get(rubro.rubro_type)
+              const rubroId = rubroIdMap.get(rubro.sort_order)
               if (!rubroId) return []
               return (rubro.activities ?? [])
                 .filter((a) => a.description.trim().length > 0 && a.amount > 0)

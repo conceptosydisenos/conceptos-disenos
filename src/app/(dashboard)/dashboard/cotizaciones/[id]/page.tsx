@@ -191,14 +191,18 @@ export default async function CotizacionDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Rubros y Presupuesto */}
+      {/* Rubros y Presupuesto — only rubros with budget > 0 or at least one activity */}
       {rubros.length > 0 && (() => {
-        const total = rubros.reduce((sum, r) => sum + (parseFloat(r.budget_amount) > 0 ? parseFloat(r.budget_amount) : 0), 0)
+        const visibleRubros = rubros.filter(
+          (r) => parseFloat(r.budget_amount) > 0 || (itemsByRubroId.get(r.id) ?? []).length > 0
+        )
+        if (visibleRubros.length === 0) return null
+        const total = visibleRubros.reduce((sum, r) => sum + parseFloat(r.budget_amount), 0)
         return (
           <div className="section-card">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Rubros y Presupuesto</p>
             <div className="divide-y divide-border">
-              {rubros.map((r) => {
+              {visibleRubros.map((r) => {
                 const amount = parseFloat(r.budget_amount)
                 const rubroItems = itemsByRubroId.get(r.id) ?? []
                 return (

@@ -39,31 +39,21 @@ export async function PATCH(
     const body = await req.json()
     const { rubros } = rubroSchema.parse(body)
 
-    // Upsert each rubro by (quote_id, rubro_type).
-    // The unique index on (quote_id, rubro_type) makes this safe.
-    await Promise.all(
-      rubros.map((r) =>
-        db
-          .insert(quote_rubros)
-          .values({
-            quote_id:      params.id,
-            rubro_type:    r.rubro_type,
-            name:          r.name,
-            budget_amount: String(r.budget_amount),
-            active:        r.active,
-            sort_order:    r.sort_order,
-          })
-          .onConflictDoUpdate({
-            target: [quote_rubros.quote_id, quote_rubros.rubro_type],
-            set: {
-              name:          r.name,
-              budget_amount: String(r.budget_amount),
-              active:        r.active,
-              sort_order:    r.sort_order,
-              updated_at:    new Date(),
-            },
-          })
-      )
+    // Replace all rubros for this quote atomically.
+    // Using DELETE + INSERT instead of upsert because multiple "personalizado"
+    // rubros share the same rubro_type, breaking the (quote_id, rubro_type)
+    // unique constraint. Activities (quote_items) are always deleted and
+    // re-created by the client after this call, so orphaned refs are safe.
+    await db.delete(quote_rubros).where(eq(quote_rubros.quote_id, params.id))
+    await db.insert(quote_rubros).values(
+      rubros.map((r) => ({
+        quote_id:      params.id,
+        rubro_type:    r.rubro_type,
+        name:          r.name,
+        budget_amount: String(r.budget_amount),
+        active:        r.active,
+        sort_order:    r.sort_order,
+      }))
     )
 
     const updated = await db
