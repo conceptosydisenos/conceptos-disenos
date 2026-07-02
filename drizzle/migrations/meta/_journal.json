@@ -57,6 +57,13 @@
       "when": 1782782283087,
       "tag": "0007_rare_wonder_man",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1782964591136,
+      "tag": "0008_drop_quote_rubros_unique",
+      "breakpoints": true
     }
   ]
 }

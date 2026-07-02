@@ -91,7 +91,13 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
             data?: Array<{ id: string; rubro_type: string; sort_order: number }>
           }
 
-          if (rubrosJson.success && rubrosJson.data) {
+          if (!rubrosJson.success) {
+            setError(rubrosJson.error ?? "Error al guardar los rubros")
+            setSaving(false)
+            return
+          }
+
+          if (rubrosJson.data) {
             // Delete existing activity items before re-saving
             if (existingActivityItemIds && existingActivityItemIds.length > 0) {
               await Promise.all(

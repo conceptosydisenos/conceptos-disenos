@@ -604,6 +604,5 @@ export const quote_rubros = pgTable(
   },
   (t) => ({
     quoteIdx: index("quote_rubros_quote_id_idx").on(t.quote_id),
-    quoteTypeUq: uniqueIndex("quote_rubros_quote_type_uq").on(t.quote_id, t.rubro_type),
   })
 )
