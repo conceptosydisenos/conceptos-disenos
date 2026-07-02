@@ -89,6 +89,7 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
           const rubrosJson = await rubrosRes.json() as {
             success: boolean
             data?: Array<{ id: string; rubro_type: string; sort_order: number }>
+            error?: string
           }
 
           if (!rubrosJson.success) {
@@ -164,6 +165,7 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
           const rubrosJson = await rubrosRes.json() as {
             success: boolean
             data?: Array<{ id: string; rubro_type: string; sort_order: number }>
+            error?: string
           }
 
           if (rubrosJson.success && rubrosJson.data) {
