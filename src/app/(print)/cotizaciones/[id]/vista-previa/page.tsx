@@ -81,10 +81,10 @@ export default async function VistaPrevia({ params }: Props) {
       <div className="vp-card">
 
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `2.5px solid ${NAVY}`, paddingBottom: "18px", marginBottom: "24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `2.5px solid ${NAVY}`, paddingBottom: "18px", marginBottom: "24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.jpg" alt="Logo" width={80} height={80} style={{ objectFit: "contain" }} />
+            <img src="/logo.jpg" alt="Logo" width={160} height={160} style={{ objectFit: "contain" }} />
             <div>
               <div style={{ fontSize: "15px", fontWeight: "700", color: NAVY }}>C D Conceptos y Diseños</div>
               <div style={{ fontSize: "12px", fontWeight: "600", color: "#374151", marginTop: "2px" }}>David Berrio Domínguez</div>
