@@ -86,8 +86,10 @@ export default async function VistaPrevia({ params }: Props) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.jpg" alt="Logo" width={80} height={80} style={{ objectFit: "contain" }} />
             <div>
-              <div style={{ fontSize: "16px", fontWeight: "700", color: NAVY }}>Conceptos y Diseños</div>
-              <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "2px" }}>Arquitectura &amp; Remodelación</div>
+              <div style={{ fontSize: "15px", fontWeight: "700", color: NAVY }}>C D Conceptos y Diseños</div>
+              <div style={{ fontSize: "12px", fontWeight: "600", color: "#374151", marginTop: "2px" }}>David Berrio Domínguez</div>
+              <div style={{ fontSize: "10px", color: "#6B7280", marginTop: "3px" }}>NIT: 1152458930-4 — Persona natural</div>
+              <div style={{ fontSize: "10px", color: "#6B7280", marginTop: "1px" }}>Tel. 316 563 53 79</div>
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -216,6 +218,11 @@ export default async function VistaPrevia({ params }: Props) {
               * Incluye {quote.contingency_percentage}% de imprevistos.
             </div>
           )}
+        </div>
+
+        {/* Signature */}
+        <div style={{ textAlign: "center", fontSize: "11px", color: "#6B7280", padding: "16px 0 4px" }}>
+          Arquitecto. David Berrio Domínguez
         </div>
 
         {/* Footer */}
