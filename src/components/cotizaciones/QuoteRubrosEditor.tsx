@@ -88,9 +88,9 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
   const updateActivity = (rubroIdx: number, actIdx: number, patch: Partial<ActivityRow>) => {
     const rubro = rubros[rubroIdx]
     const nextActivities = rubro.activities.map((a, i) => (i === actIdx ? { ...a, ...patch } : a))
-    const extra: Partial<RubroRow> = { activities: nextActivities }
-    if (rubro.autoCalculate) {
-      extra.budget_amount = nextActivities.reduce((s, a) => s + a.amount, 0)
+    const extra: Partial<RubroRow> = {
+      activities: nextActivities,
+      budget_amount: nextActivities.reduce((s, a) => s + a.amount, 0),
     }
     update(rubroIdx, extra)
   }
@@ -98,9 +98,9 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
   const removeActivity = (rubroIdx: number, actIdx: number) => {
     const rubro = rubros[rubroIdx]
     const nextActivities = rubro.activities.filter((_, i) => i !== actIdx)
-    const extra: Partial<RubroRow> = { activities: nextActivities }
-    if (rubro.autoCalculate) {
-      extra.budget_amount = nextActivities.reduce((s, a) => s + a.amount, 0)
+    const extra: Partial<RubroRow> = {
+      activities: nextActivities,
+      budget_amount: nextActivities.reduce((s, a) => s + a.amount, 0),
     }
     update(rubroIdx, extra)
   }
@@ -180,26 +180,31 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
             <span className="text-[11px] text-muted-foreground">Calcular total automáticamente</span>
           </label>
 
-          {/* Budget amount */}
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-              $
-            </span>
-            <Input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={rubro.budget_amount === 0 ? "" : String(rubro.budget_amount)}
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, "")
-                update(idx, { budget_amount: parseInt(digits, 10) || 0 })
-              }}
-              placeholder={rubro.autoCalculate ? COP.format(rubro.budget_amount) : "0"}
-              className="pl-7 tabular-nums h-9"
-              disabled={!rubro.active}
-              readOnly={rubro.autoCalculate}
-            />
-          </div>
+          {/* Budget amount — auto-calculated when activities have amounts */}
+          {(() => {
+            const hasActivityAmounts = rubro.activities.some(a => a.amount > 0)
+            return (
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                  $
+                </span>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={rubro.budget_amount === 0 ? "" : String(rubro.budget_amount)}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "")
+                    update(idx, { budget_amount: parseInt(digits, 10) || 0 })
+                  }}
+                  placeholder={hasActivityAmounts || rubro.autoCalculate ? COP.format(rubro.budget_amount) : "0"}
+                  className="pl-7 tabular-nums h-9"
+                  disabled={!rubro.active}
+                  readOnly={hasActivityAmounts || rubro.autoCalculate}
+                />
+              </div>
+            )
+          })()}
 
           {/* Activities */}
           {rubro.active && (
