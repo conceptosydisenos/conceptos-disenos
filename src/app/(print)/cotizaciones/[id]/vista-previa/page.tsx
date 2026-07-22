@@ -154,12 +154,27 @@ export default async function VistaPrevia({ params }: Props) {
                   </div>
                   {rubroItems.length > 0 && (
                     <div style={{ border: "1px solid #E5E7EB", borderTop: "none", borderRadius: "0 0 4px 4px", overflow: "hidden" }}>
-                      {rubroItems.map((item, i) => (
-                        <div key={item.id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 14px", fontSize: "12px", backgroundColor: i % 2 === 0 ? "#FAFAFA" : "white" }}>
-                          <span style={{ color: "#374151" }}>• {item.name}</span>
-                          <span style={{ color: "#6B7280", fontVariantNumeric: "tabular-nums" }}>{fmt(item.unit_price)}</span>
-                        </div>
-                      ))}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 44px 80px 80px", padding: "4px 14px", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#9CA3AF", backgroundColor: "#F9FAFB", borderBottom: "1px solid #E5E7EB" }}>
+                        <span>Actividad</span>
+                        <span style={{ textAlign: "right" }}>Cant.</span>
+                        <span style={{ textAlign: "right" }}>Valor unit.</span>
+                        <span style={{ textAlign: "right" }}>Total</span>
+                      </div>
+                      {rubroItems.map((item, i) => {
+                        const qty = parseFloat(item.quantity)
+                        const unitPrice = parseFloat(item.unit_price)
+                        const total = parseFloat(item.total_price)
+                        return (
+                          <div key={item.id} style={{ display: "grid", gridTemplateColumns: "1fr 44px 80px 80px", padding: "6px 14px", fontSize: "11px", backgroundColor: i % 2 === 0 ? "#FAFAFA" : "white", alignItems: "center" }}>
+                            <span style={{ color: "#374151" }}>{item.name}</span>
+                            <span style={{ color: "#6B7280", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>
+                              {qty % 1 === 0 ? qty.toFixed(0) : qty.toFixed(2)}
+                            </span>
+                            <span style={{ color: "#6B7280", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{fmt(unitPrice)}</span>
+                            <span style={{ color: "#374151", fontVariantNumeric: "tabular-nums", textAlign: "right", fontWeight: "600" }}>{fmt(total)}</span>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>

@@ -226,14 +226,26 @@ export default async function CotizacionDetailPage({ params }: Props) {
                     </div>
                     {rubroItems.length > 0 && (
                       <div className="mt-1 pl-3 space-y-0.5">
-                        {rubroItems.map((item) => (
-                          <div key={item.id} className="flex items-start justify-between gap-2">
-                            <span className="text-xs text-muted-foreground leading-snug">• {item.name}</span>
-                            <span className="text-xs tabular-nums text-muted-foreground shrink-0">
-                              {formatCOP(parseFloat(item.unit_price))}
-                            </span>
-                          </div>
-                        ))}
+                        {rubroItems.map((item) => {
+                          const qty = parseFloat(item.quantity)
+                          const total = parseFloat(item.total_price)
+                          const unitPrice = parseFloat(item.unit_price)
+                          return (
+                            <div key={item.id} className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <span className="text-xs text-muted-foreground leading-snug">• {item.name}</span>
+                                {qty !== 1 && (
+                                  <span className="block text-[10px] text-muted-foreground/60 pl-2 tabular-nums">
+                                    {qty % 1 === 0 ? qty.toFixed(0) : qty} {item.unit} × {formatCOP(unitPrice)}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs tabular-nums text-muted-foreground shrink-0">
+                                {formatCOP(total)}
+                              </span>
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
                   </div>

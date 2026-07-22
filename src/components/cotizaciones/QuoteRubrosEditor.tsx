@@ -7,6 +7,8 @@ import { Plus, Trash2 } from "lucide-react"
 
 export interface ActivityRow {
   description: string
+  quantity: number
+  unit_price: number
   amount: number
 }
 
@@ -79,7 +81,7 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
   }
 
   const addActivity = (rubroIdx: number) => {
-    const next = rubros[rubroIdx].activities.concat({ description: "", amount: 0 })
+    const next = rubros[rubroIdx].activities.concat({ description: "", quantity: 1, unit_price: 0, amount: 0 })
     update(rubroIdx, { activities: next })
   }
 
@@ -203,37 +205,57 @@ export function QuoteRubrosEditor({ value, onChange }: Props) {
           {rubro.active && (
             <div className="space-y-2 pt-0.5">
               {rubro.activities.map((act, aIdx) => (
-                <div key={aIdx} className="flex items-center gap-2">
-                  <Input
-                    value={act.description}
-                    onChange={(e) => updateActivity(idx, aIdx, { description: e.target.value })}
-                    placeholder="Descripción de la actividad"
-                    className="h-9 text-sm flex-1 min-w-0"
-                  />
-                  <div className="relative w-28 shrink-0">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                      $
-                    </span>
+                <div key={aIdx} className="rounded-lg border border-border/60 bg-muted/20 p-2 space-y-1.5">
+                  <div className="flex items-center gap-2">
                     <Input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={act.amount === 0 ? "" : String(act.amount)}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, "")
-                        updateActivity(idx, aIdx, { amount: parseInt(digits, 10) || 0 })
-                      }}
-                      placeholder="0"
-                      className="pl-6 tabular-nums h-9 text-sm"
+                      value={act.description}
+                      onChange={(e) => updateActivity(idx, aIdx, { description: e.target.value })}
+                      placeholder="Descripción de la actividad"
+                      className="h-8 text-sm flex-1 min-w-0"
                     />
+                    <button
+                      type="button"
+                      onClick={() => removeActivity(idx, aIdx)}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-1 shrink-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeActivity(idx, aIdx)}
-                    className="text-muted-foreground hover:text-destructive transition-colors p-1.5 shrink-0"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step="any"
+                      value={act.quantity === 0 ? "" : String(act.quantity)}
+                      onChange={(e) => {
+                        const q = parseFloat(e.target.value) || 0
+                        updateActivity(idx, aIdx, { quantity: q, amount: q * act.unit_price })
+                      }}
+                      placeholder="Cant."
+                      className="w-16 h-7 text-xs tabular-nums text-center shrink-0"
+                    />
+                    <span className="text-xs text-muted-foreground shrink-0">×</span>
+                    <div className="relative flex-1 min-w-0">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">$</span>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={act.unit_price === 0 ? "" : String(act.unit_price)}
+                        onChange={(e) => {
+                          const up = parseInt(e.target.value.replace(/\D/g, ""), 10) || 0
+                          updateActivity(idx, aIdx, { unit_price: up, amount: act.quantity * up })
+                        }}
+                        placeholder="Valor unit."
+                        className="pl-6 h-7 text-xs tabular-nums"
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0">=</span>
+                    <span className="text-xs font-semibold tabular-nums text-foreground shrink-0 min-w-[56px] text-right">
+                      {COP.format(act.amount)}
+                    </span>
+                  </div>
                 </div>
               ))}
               <button

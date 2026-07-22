@@ -125,8 +125,8 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
                       category:       rubro.rubro_type,
                       name:           a.description.trim(),
                       unit:           "Global",
-                      quantity:       1,
-                      unit_price:     a.amount,
+                      quantity:       a.quantity,
+                      unit_price:     a.unit_price,
                       quote_rubro_id: rubroId,
                     }),
                   })
@@ -184,8 +184,8 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
                       category:       rubro.rubro_type,
                       name:           a.description.trim(),
                       unit:           "Global",
-                      quantity:       1,
-                      unit_price:     a.amount,
+                      quantity:       a.quantity,
+                      unit_price:     a.unit_price,
                       quote_rubro_id: rubroId,
                     }),
                   })

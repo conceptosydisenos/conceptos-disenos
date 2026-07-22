@@ -58,7 +58,9 @@ export default async function EditarCotizacionPage({ params }: Props) {
     sort_order:    r.sort_order,
     activities:    (itemsByRubroId.get(r.id) ?? []).map((i) => ({
       description: i.name,
-      amount:      parseFloat(i.unit_price),
+      quantity:    parseFloat(i.quantity),
+      unit_price:  parseFloat(i.unit_price),
+      amount:      parseFloat(i.total_price),
     })),
     autoCalculate: false,
   }))
