@@ -224,25 +224,25 @@ export default async function VistaPrevia({ params }: Props) {
         </div>
 
         {/* Payment conditions */}
-        <div className="condiciones-pago" style={{ padding: "16px", backgroundColor: "#F0FDF9", borderRadius: "8px", border: `1px solid ${GREEN}40`, marginBottom: "20px" }}>
-          <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "12px" }}>
+        <div className="condiciones-pago" style={{ padding: "10px", backgroundColor: "#F0FDF9", borderRadius: "8px", border: `1px solid ${GREEN}40`, marginBottom: "20px" }}>
+          <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "8px" }}>
             Condiciones de pago
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            <div style={{ padding: "12px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+            <div style={{ padding: "8px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
               <div style={{ fontSize: "10px", color: "#9CA3AF" }}>Anticipo</div>
-              <div style={{ fontSize: "18px", fontWeight: "700", color: NAVY }}>{advancePct.toFixed(0)}%</div>
-              <div style={{ fontSize: "12px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(advance)}</div>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: NAVY }}>{advancePct.toFixed(0)}%</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(advance)}</div>
             </div>
-            <div style={{ padding: "12px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
+            <div style={{ padding: "8px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
               <div style={{ fontSize: "10px", color: "#9CA3AF" }}>Saldo al finalizar</div>
-              <div style={{ fontSize: "18px", fontWeight: "700", color: NAVY }}>{(100 - advancePct).toFixed(0)}%</div>
-              <div style={{ fontSize: "12px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(remaining)}</div>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: NAVY }}>{(100 - advancePct).toFixed(0)}%</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(remaining)}</div>
             </div>
           </div>
           {parseFloat(quote.contingency_percentage) > 0 && (
-            <div style={{ marginTop: "10px", fontSize: "11px", color: "#6B7280" }}>
-              * Incluye {quote.contingency_percentage}% de imprevistos.
+            <div style={{ marginTop: "8px", fontSize: "10px", color: "#6B7280" }}>
+              * Incluye {parseFloat(quote.contingency_percentage)}% de imprevistos.
             </div>
           )}
         </div>
@@ -253,8 +253,7 @@ export default async function VistaPrevia({ params }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="vp-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #E5E7EB", paddingTop: "12px", fontSize: "10px", color: "#9CA3AF" }}>
-          <span>Válida hasta el {fmtDate(quote.valid_until)}</span>
+        <div className="vp-footer" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", borderTop: "1px solid #E5E7EB", paddingTop: "12px", fontSize: "10px", color: "#9CA3AF" }}>
           <span>{quote.quote_number}</span>
         </div>
 
