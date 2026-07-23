@@ -96,7 +96,6 @@ export default async function VistaPrevia({ params }: Props) {
             <div style={{ fontSize: "22px", fontWeight: "700", color: NAVY, letterSpacing: "0.06em" }}>COTIZACIÓN</div>
             <div style={{ fontSize: "13px", fontWeight: "700", color: GREEN, marginTop: "4px" }}>{quote.quote_number}</div>
             <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "4px" }}>Creada {fmtDate(quote.created_at)}</div>
-            <div style={{ fontSize: "11px", color: "#6B7280" }}>Válida hasta {fmtDate(quote.valid_until)}</div>
           </div>
         </div>
 
