@@ -224,24 +224,24 @@ export default async function VistaPrevia({ params }: Props) {
         </div>
 
         {/* Payment conditions */}
-        <div className="condiciones-pago" style={{ padding: "10px", backgroundColor: "#F0FDF9", borderRadius: "8px", border: `1px solid ${GREEN}40`, marginBottom: "20px" }}>
-          <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "8px" }}>
+        <div className="condiciones-pago" style={{ padding: "8px", backgroundColor: "#F0FDF9", borderRadius: "8px", border: `1px solid ${GREEN}40`, marginBottom: "20px" }}>
+          <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "6px" }}>
             Condiciones de pago
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-            <div style={{ padding: "8px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
+            <div style={{ padding: "6px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
               <div style={{ fontSize: "10px", color: "#9CA3AF" }}>Anticipo</div>
-              <div style={{ fontSize: "14px", fontWeight: "700", color: NAVY }}>{advancePct.toFixed(0)}%</div>
-              <div style={{ fontSize: "11px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(advance)}</div>
+              <div style={{ fontSize: "13px", fontWeight: "700", color: NAVY }}>{advancePct.toFixed(0)}%</div>
+              <div style={{ fontSize: "10px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(advance)}</div>
             </div>
-            <div style={{ padding: "8px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
+            <div style={{ padding: "6px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
               <div style={{ fontSize: "10px", color: "#9CA3AF" }}>Saldo al finalizar</div>
-              <div style={{ fontSize: "14px", fontWeight: "700", color: NAVY }}>{(100 - advancePct).toFixed(0)}%</div>
-              <div style={{ fontSize: "11px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(remaining)}</div>
+              <div style={{ fontSize: "13px", fontWeight: "700", color: NAVY }}>{(100 - advancePct).toFixed(0)}%</div>
+              <div style={{ fontSize: "10px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(remaining)}</div>
             </div>
           </div>
           {parseFloat(quote.contingency_percentage) > 0 && (
-            <div style={{ marginTop: "8px", fontSize: "10px", color: "#6B7280" }}>
+            <div style={{ marginTop: "6px", fontSize: "10px", color: "#6B7280" }}>
               * Incluye {parseFloat(quote.contingency_percentage)}% de imprevistos.
             </div>
           )}

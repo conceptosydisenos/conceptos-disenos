@@ -61,8 +61,8 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
       tax_percentage:         Number(data.get("tax_percentage") ?? 0),
       advance_percentage:     Number(data.get("advance_percentage") ?? 50),
       contingency_percentage: isEditMode
-        ? (initialValues?.contingency_percentage ?? 15)
-        : Number(data.get("contingency_percentage") ?? 15),
+        ? (initialValues?.contingency_percentage ?? 0)
+        : Number(data.get("contingency_percentage") ?? 0),
     }
 
     try {
