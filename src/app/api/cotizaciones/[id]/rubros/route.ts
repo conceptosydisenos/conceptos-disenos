@@ -67,6 +67,7 @@ export async function PATCH(
     if (err instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: err.errors[0].message }, { status: 400 })
     }
+    console.error("[rubros PATCH]", err)
     return NextResponse.json({ success: false, error: "Error al actualizar rubros" }, { status: 500 })
   }
 }

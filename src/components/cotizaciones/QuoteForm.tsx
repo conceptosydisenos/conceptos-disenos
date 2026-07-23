@@ -81,6 +81,16 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
         }
 
         if (rubros.length > 0) {
+          // Delete existing activity items FIRST so the rubros DELETE (inside
+          // the rubros PATCH) is not blocked by the FK constraint on quote_rubro_id.
+          if (existingActivityItemIds && existingActivityItemIds.length > 0) {
+            await Promise.all(
+              existingActivityItemIds.map((itemId) =>
+                fetch(`/api/cotizaciones/${quoteId}/items/${itemId}`, { method: "DELETE" })
+              )
+            )
+          }
+
           const rubrosRes = await fetch(`/api/cotizaciones/${quoteId}/rubros`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -99,15 +109,6 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
           }
 
           if (rubrosJson.data) {
-            // Delete existing activity items before re-saving
-            if (existingActivityItemIds && existingActivityItemIds.length > 0) {
-              await Promise.all(
-                existingActivityItemIds.map((itemId) =>
-                  fetch(`/api/cotizaciones/${quoteId}/items/${itemId}`, { method: "DELETE" })
-                )
-              )
-            }
-
             // Map by sort_order (not rubro_type) so multiple "personalizado"
             // rubros each resolve to their correct DB id.
             const rubroIdMap = new Map(rubrosJson.data.map((r) => [r.sort_order, r.id]))
