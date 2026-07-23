@@ -81,18 +81,18 @@ export default async function VistaPrevia({ params }: Props) {
       <div className="vp-card">
 
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `2.5px solid ${NAVY}`, paddingBottom: "18px", marginBottom: "24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `2.5px solid ${NAVY}`, paddingBottom: "18px", marginBottom: "24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: "1 1 0", minWidth: 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.jpg" alt="Logo" width={160} height={160} style={{ objectFit: "contain" }} />
-            <div>
+            <img src="/logo.jpg" alt="Logo" width={100} height={100} style={{ objectFit: "contain", flexShrink: 0 }} />
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: "15px", fontWeight: "700", color: NAVY }}>C D Conceptos y Diseños</div>
               <div style={{ fontSize: "12px", fontWeight: "600", color: "#374151", marginTop: "2px" }}>David Berrio Domínguez</div>
               <div style={{ fontSize: "10px", color: "#6B7280", marginTop: "3px" }}>NIT: 1152458930-4 — Persona natural</div>
               <div style={{ fontSize: "10px", color: "#6B7280", marginTop: "1px" }}>Tel. 316 563 53 79</div>
             </div>
           </div>
-          <div style={{ textAlign: "right" }}>
+          <div style={{ textAlign: "right", flexShrink: 0, paddingLeft: "16px" }}>
             <div style={{ fontSize: "22px", fontWeight: "700", color: NAVY, letterSpacing: "0.06em" }}>COTIZACIÓN</div>
             <div style={{ fontSize: "13px", fontWeight: "700", color: GREEN, marginTop: "4px" }}>{quote.quote_number}</div>
             <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "4px" }}>Creada {fmtDate(quote.created_at)}</div>
@@ -154,27 +154,39 @@ export default async function VistaPrevia({ params }: Props) {
                   </div>
                   {rubroItems.length > 0 && (
                     <div style={{ border: "1px solid #E5E7EB", borderTop: "none", borderRadius: "0 0 4px 4px", overflow: "hidden" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 44px 80px 80px", padding: "4px 14px", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#9CA3AF", backgroundColor: "#F9FAFB", borderBottom: "1px solid #E5E7EB" }}>
-                        <span>Actividad</span>
-                        <span style={{ textAlign: "right" }}>Cant.</span>
-                        <span style={{ textAlign: "right" }}>Valor unit.</span>
-                        <span style={{ textAlign: "right" }}>Total</span>
-                      </div>
-                      {rubroItems.map((item, i) => {
-                        const qty = parseFloat(item.quantity)
-                        const unitPrice = parseFloat(item.unit_price)
-                        const total = parseFloat(item.total_price)
-                        return (
-                          <div key={item.id} style={{ display: "grid", gridTemplateColumns: "1fr 44px 80px 80px", padding: "6px 14px", fontSize: "11px", backgroundColor: i % 2 === 0 ? "#FAFAFA" : "white", alignItems: "center" }}>
-                            <span style={{ color: "#374151" }}>{item.name}</span>
-                            <span style={{ color: "#6B7280", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>
-                              {qty % 1 === 0 ? qty.toFixed(0) : qty.toFixed(2)}
-                            </span>
-                            <span style={{ color: "#6B7280", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{fmt(unitPrice)}</span>
-                            <span style={{ color: "#374151", fontVariantNumeric: "tabular-nums", textAlign: "right", fontWeight: "600" }}>{fmt(total)}</span>
-                          </div>
-                        )
-                      })}
+                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                        <colgroup>
+                          <col style={{ width: "48%" }} />
+                          <col style={{ width: "10%" }} />
+                          <col style={{ width: "22%" }} />
+                          <col style={{ width: "20%" }} />
+                        </colgroup>
+                        <thead>
+                          <tr style={{ backgroundColor: "#F9FAFB", borderBottom: "1px solid #E5E7EB" }}>
+                            <th style={{ textAlign: "left", padding: "4px 14px", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#9CA3AF" }}>Actividad</th>
+                            <th style={{ textAlign: "right", padding: "4px 6px", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#9CA3AF" }}>Cant.</th>
+                            <th style={{ textAlign: "right", padding: "4px 6px", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#9CA3AF" }}>Valor unit.</th>
+                            <th style={{ textAlign: "right", padding: "4px 14px 4px 6px", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#9CA3AF" }}>Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rubroItems.map((item, i) => {
+                            const qty = parseFloat(item.quantity)
+                            const unitPrice = parseFloat(item.unit_price)
+                            const total = parseFloat(item.total_price)
+                            return (
+                              <tr key={item.id} style={{ backgroundColor: i % 2 === 0 ? "#FAFAFA" : "white" }}>
+                                <td style={{ padding: "6px 14px", fontSize: "11px", color: "#374151", wordBreak: "break-word", verticalAlign: "middle" }}>{item.name}</td>
+                                <td style={{ padding: "6px 6px", fontSize: "11px", color: "#6B7280", fontVariantNumeric: "tabular-nums", textAlign: "right", whiteSpace: "nowrap", verticalAlign: "middle" }}>
+                                  {qty % 1 === 0 ? qty.toFixed(0) : qty.toFixed(2)}
+                                </td>
+                                <td style={{ padding: "6px 6px", fontSize: "11px", color: "#6B7280", fontVariantNumeric: "tabular-nums", textAlign: "right", whiteSpace: "nowrap", verticalAlign: "middle" }}>{fmt(unitPrice)}</td>
+                                <td style={{ padding: "6px 14px 6px 6px", fontSize: "11px", color: "#374151", fontVariantNumeric: "tabular-nums", textAlign: "right", fontWeight: "600", whiteSpace: "nowrap", verticalAlign: "middle" }}>{fmt(total)}</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>
