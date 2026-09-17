@@ -55,11 +55,6 @@
     page-break-inside: avoid;
     break-inside: avoid;
   }
-  .vp-footer {
-    page-break-before: avoid;
-    break-before: avoid;
-  }
-
   /* Activity table: reinforce fixed layout so columns stay stable in print */
   table {
     table-layout: fixed !important;

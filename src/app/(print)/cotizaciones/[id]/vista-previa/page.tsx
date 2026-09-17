@@ -94,8 +94,8 @@ export default async function VistaPrevia({ params }: Props) {
           </div>
           <div style={{ textAlign: "right", flexShrink: 0, paddingLeft: "16px" }}>
             <div style={{ fontSize: "22px", fontWeight: "700", color: NAVY, letterSpacing: "0.06em" }}>COTIZACIÓN</div>
-            <div style={{ fontSize: "13px", fontWeight: "700", color: GREEN, marginTop: "4px" }}>{quote.quote_number}</div>
-            <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "4px" }}>Creada {fmtDate(quote.created_at)}</div>
+            {/* Quote number intentionally hidden from the client — still stored/used internally */}
+            <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "6px" }}>Creada {fmtDate(quote.created_at)}</div>
           </div>
         </div>
 
@@ -274,11 +274,6 @@ export default async function VistaPrevia({ params }: Props) {
         {/* Signature */}
         <div style={{ textAlign: "center", fontSize: "11px", color: "#6B7280", padding: "8px 0 4px" }}>
           Arquitecto. David Berrio Domínguez
-        </div>
-
-        {/* Footer */}
-        <div className="vp-footer" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", borderTop: "1px solid #E5E7EB", paddingTop: "12px", fontSize: "10px", color: "#9CA3AF" }}>
-          <span>{quote.quote_number}</span>
         </div>
 
       </div>
