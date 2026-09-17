@@ -485,6 +485,9 @@ export const quotes = pgTable(
     is_current_version: boolean("is_current_version").notNull().default(true),
     project_name: text("project_name").notNull(),
     description: text("description"),
+    // Free-form notes for this specific quote. Shown as a "Notas" section in
+    // the preview/PDF only when non-empty — never rendered as an empty header.
+    notes: text("notes"),
     // Contact info on the quote (may differ from client record)
     contact_name: text("contact_name"),
     contact_email: text("contact_email"),

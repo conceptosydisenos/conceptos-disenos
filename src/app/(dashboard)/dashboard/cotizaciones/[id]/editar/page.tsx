@@ -96,6 +96,7 @@ export default async function EditarCotizacionPage({ params }: Props) {
             advance_percentage:     parseFloat(quote.advance_percentage),
             contingency_percentage: parseFloat(quote.contingency_percentage),
             rubros:                 initialRubros,
+            notes:                  quote.notes ?? undefined,
           }}
         />
       </div>

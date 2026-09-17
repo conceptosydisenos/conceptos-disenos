@@ -21,6 +21,7 @@ interface InitialValues {
   advance_percentage?: number
   contingency_percentage?: number
   rubros?: RubroRow[]
+  notes?: string
 }
 
 interface Props {
@@ -56,6 +57,9 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
       contact_name:           data.get("contact_name") || undefined,
       contact_phone:          data.get("contact_phone") || undefined,
       contact_email:          data.get("contact_email") || undefined,
+      // Always sent as a string (never undefined) so clearing the textarea
+      // on edit actually clears the stored value instead of being dropped.
+      notes:                  ((data.get("notes") as string | null) ?? "").trim(),
       valid_until:            data.get("valid_until"),
       discount_percentage:    Number(data.get("discount_percentage") ?? 0),
       tax_percentage:         Number(data.get("tax_percentage") ?? 0),
@@ -350,6 +354,24 @@ export function QuoteForm({ initialValues, quoteId, existingActivityItemIds }: P
           </p>
         </div>
         <QuoteRubrosEditor value={initialValues?.rubros} onChange={setRubros} />
+      </div>
+
+      {/* Notas */}
+      <div className="space-y-4 pt-2 border-t border-border">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Notas</p>
+        <div>
+          <Label htmlFor="notes">
+            Notas <span className="text-muted-foreground font-normal">(opcional)</span>
+          </Label>
+          <Textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            defaultValue={initialValues?.notes ?? ""}
+            placeholder="Cualquier nota adicional para esta cotización..."
+            className="mt-1.5 resize-none"
+          />
+        </div>
       </div>
 
       {error && (

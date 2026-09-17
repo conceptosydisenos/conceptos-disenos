@@ -222,28 +222,53 @@ export default async function VistaPrevia({ params }: Props) {
           </div>
         </div>
 
+        {/* Notas */}
+        {quote.notes && quote.notes.trim().length > 0 && (
+          <div className="vp-notes" style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "6px" }}>
+              Notas
+            </div>
+            <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.5", whiteSpace: "pre-wrap" }}>
+              {quote.notes.trim()}
+            </div>
+          </div>
+        )}
+
         {/* Payment conditions */}
-        <div className="condiciones-pago" style={{ padding: "8px", backgroundColor: "#F0FDF9", borderRadius: "8px", border: `1px solid ${GREEN}40`, marginBottom: "12px" }}>
-          <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "6px" }}>
+        <div className="condiciones-pago" style={{ padding: "6px 8px", backgroundColor: "#F0FDF9", borderRadius: "8px", border: `1px solid ${GREEN}40`, marginBottom: "10px" }}>
+          <div style={{ fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "4px" }}>
             Condiciones de pago
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-            <div style={{ padding: "6px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
-              <div style={{ fontSize: "10px", color: "#9CA3AF" }}>Anticipo</div>
-              <div style={{ fontSize: "15px", fontWeight: "700", color: NAVY }}>{advancePct.toFixed(0)}%</div>
-              <div style={{ fontSize: "11px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(advance)}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px" }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "5px", padding: "4px 6px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", lineHeight: "1.2" }}>
+              <span style={{ fontSize: "9px", color: "#9CA3AF" }}>Anticipo</span>
+              <span style={{ fontSize: "12px", fontWeight: "700", color: NAVY }}>{advancePct.toFixed(0)}%</span>
+              <span style={{ fontSize: "10px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(advance)}</span>
             </div>
-            <div style={{ padding: "6px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", textAlign: "center" }}>
-              <div style={{ fontSize: "10px", color: "#9CA3AF" }}>Saldo al finalizar</div>
-              <div style={{ fontSize: "15px", fontWeight: "700", color: NAVY }}>{(100 - advancePct).toFixed(0)}%</div>
-              <div style={{ fontSize: "11px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(remaining)}</div>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "5px", padding: "4px 6px", backgroundColor: "white", borderRadius: "6px", border: "1px solid #E5E7EB", lineHeight: "1.2" }}>
+              <span style={{ fontSize: "9px", color: "#9CA3AF" }}>Saldo al finalizar</span>
+              <span style={{ fontSize: "12px", fontWeight: "700", color: NAVY }}>{(100 - advancePct).toFixed(0)}%</span>
+              <span style={{ fontSize: "10px", fontWeight: "600", color: GREEN, fontVariantNumeric: "tabular-nums" }}>{fmt(remaining)}</span>
             </div>
           </div>
           {parseFloat(quote.contingency_percentage) > 0 && (
-            <div style={{ marginTop: "6px", fontSize: "10px", color: "#6B7280" }}>
+            <div style={{ marginTop: "4px", fontSize: "9px", color: "#6B7280" }}>
               * Incluye {parseFloat(quote.contingency_percentage)}% de imprevistos.
             </div>
           )}
+        </div>
+
+        {/* Delivery terms (fixed boilerplate) */}
+        <div className="vp-entrega" style={{ marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: "6px" }}>
+            Tiempos estimados de entrega
+          </div>
+          <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.5" }}>
+            A lo acordado con el cliente.
+          </div>
+          <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.5", marginTop: "8px" }}>
+            Cualquier inquietud con gusto será atendida. Cordialmente,
+          </div>
         </div>
 
         {/* Signature */}

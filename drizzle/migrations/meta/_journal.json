@@ -64,6 +64,13 @@
       "when": 1782964591136,
       "tag": "0008_drop_quote_rubros_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789672481784,
+      "tag": "0009_spicy_dark_beast",
+      "breakpoints": true
     }
   ]
 }

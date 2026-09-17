@@ -49,7 +49,9 @@
     border-radius: 0;
     padding: 20px 32px;
   }
-  .condiciones-pago {
+  .condiciones-pago,
+  .vp-notes,
+  .vp-entrega {
     page-break-inside: avoid;
     break-inside: avoid;
   }
